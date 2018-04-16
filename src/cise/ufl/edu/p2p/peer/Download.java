@@ -5,17 +5,17 @@ import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.Arrays;
 
+import cise.ufl.edu.p2p.messages.Handshake;
+
 
 public class Download implements Runnable {
 	private Socket socket;
 	private ObjectInputStream in;
-	private String remotePeerId;
 	private SharedData sharedData;
 	
 	// client thread initialization
 	public Download(Socket clientSocket, String peerId, SharedData data) {
 		socket = clientSocket;
-		remotePeerId = peerId;
 		sharedData = data;
 		try {
 			in = new ObjectInputStream(socket.getInputStream());
@@ -28,7 +28,6 @@ public class Download implements Runnable {
 	// server thread initialization
 	public Download(Socket clientSocket, SharedData data) {
 		socket = clientSocket;
-		remotePeerId = null;
 		sharedData = data;
 		sharedData.setDownloadHandshake(true);
 		try {
@@ -57,6 +56,7 @@ public class Download implements Runnable {
 	// TODO : Define incorrect peer id error
 	private void receiveHandshake() {		
 		synchronized(sharedData) {
+			ConnectionManager connectionManager = ConnectionManager.getInstance();
 			byte[] message = new byte[32];
 			try {				
 				in.readFully(message);
@@ -65,6 +65,8 @@ public class Download implements Runnable {
 				System.out.println("Error while receiving handshake message");
 				e.printStackTrace();
 			}			
+			String remotePeerId = Handshake.getRemotePeerId(message);
+			sharedData.addConnection(peerId);
 			sharedData.setUploadHandshake(true);
 			sharedData.notify();
 		}

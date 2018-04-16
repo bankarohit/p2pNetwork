@@ -11,13 +11,11 @@ import cise.ufl.edu.p2p.messages.Handshake;
 public class Upload implements Runnable {
 	private Socket socket;
 	private ObjectOutputStream out;
-	private String remotePeerId;
 	private SharedData sharedData;
 
 	// client thread initialization
 	public Upload(Socket clientSocket, String id, SharedData data) {
 		socket = clientSocket;
-		remotePeerId = id;
 		sharedData = data;
 		sharedData.setUploadHandshake(true);
 		try {
@@ -31,7 +29,6 @@ public class Upload implements Runnable {
 	// server thread initialization
 	public Upload(Socket clientSocket, SharedData data) {
 		socket = clientSocket;
-		remotePeerId = null;
 		sharedData = data;
 		try {
 			out = new ObjectOutputStream(socket.getOutputStream());

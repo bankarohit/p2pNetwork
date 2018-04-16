@@ -5,6 +5,28 @@ import java.util.BitSet;
 public class SharedData {
 	private volatile boolean bitfieldSent;
 	private BitSet peerBitset;
+	private String remotePeerId;
+	private Connection conn;
+	
+
+	public SharedData(Connection connection) {
+		conn = connection;
+	}
+	
+	public void addConnection(String peerId) {
+		remotePeerId = peerId;
+		ConnectionManager connectionManager = ConnectionManager.getInstance();
+		connectionManager.addConnection(peerId, conn);
+	}
+
+	public synchronized String getRemotePeerId() {
+		return remotePeerId;
+	}
+
+	public synchronized void setRemotePeerId(String remotePeerId) {
+		this.remotePeerId = remotePeerId;
+	}
+
 	private volatile boolean uploadHandshake;
 	private volatile boolean downloadHandshake;
 	
