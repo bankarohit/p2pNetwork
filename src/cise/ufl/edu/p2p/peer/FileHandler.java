@@ -24,8 +24,8 @@ public class FileHandler {
 		return filePieces.nextClearBit(0);
 	}
 
-	public static void hasFile() {
-		filePieces.flip(0, filePieces.size());
+	public static boolean hasFile() {
+		return file.size() == 0;
 	}
 
 	public static synchronized void receivedPiece(int index) {
@@ -93,7 +93,7 @@ public class FileHandler {
 				for(int i = 0; i < file.size();i++ ) {
 					try {
 						fos.write(file.get(i));
-						System.out.println(file.get(i).hashCode());
+						//System.out.println(file.get(i).hashCode());
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
