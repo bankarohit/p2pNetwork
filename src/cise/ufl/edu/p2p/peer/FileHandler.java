@@ -13,7 +13,7 @@ import cise.ufl.edu.p2p.utils.Constants;
 public class FileHandler {
 	
 	private static ConcurrentHashMap<Integer, byte[]> file = new ConcurrentHashMap<Integer,byte[]>();
-	private static BitSet filePieces;
+	private static BitSet filePieces = new BitSet(CommonProperties.getNumberOfPieces());
 	
 	
 	public static byte[] getPiece(int index) {
