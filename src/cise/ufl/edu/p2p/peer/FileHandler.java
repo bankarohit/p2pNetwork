@@ -14,8 +14,8 @@ public class FileHandler {
 	
 	private static ConcurrentHashMap<Integer, byte[]> file = new ConcurrentHashMap<Integer,byte[]>();
 	private static BitSet filePieces;
-
-
+	
+	
 	public static byte[] getPiece(int index) {
 		return file.get(index);
 	}
@@ -57,7 +57,8 @@ public class FileHandler {
 						if( fileSize < pieceSize)
 							pieceSize = (int) fileSize;
 						file.put(pieceIndex++, piece);
-						System.out.println(piece.hashCode());
+						filePieces.set(pieceIndex);
+						//System.out.println(piece.hashCode());
 						byte[] empty = new byte[pieceSize];
 						piece = empty;
 					}
@@ -103,5 +104,15 @@ public class FileHandler {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+
+		
+		public static BitSet getFilePieces() {
+			return filePieces;
+		}
+
+		
+		public static void setFilePieces(BitSet filePieces) {
+			FileHandler.filePieces = filePieces;
 		}
 }
