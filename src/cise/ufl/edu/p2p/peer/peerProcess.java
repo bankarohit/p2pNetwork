@@ -1,0 +1,56 @@
+package cise.ufl.edu.p2p.peer;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+
+import cise.ufl.edu.p2p.messages.Handshake;
+import cise.ufl.edu.p2p.utils.LoadConfig;
+import cise.ufl.edu.p2p.utils.LoadPeerList;
+
+public class peerProcess {
+	private static String peerId;
+
+	public static void main(String args[]) throws IOException {
+		peerId = args[0];
+		init();
+		System.out.println(CommonProperties.print());
+		Peer current = new Peer(LoadPeerList.getPeer(peerId));
+		current.createTCPConnections();
+		current.listenForConnections();
+	}
+
+	private static void init() {
+		// Updates Log Configuration at run time so that peerId is appended to
+		// the filename
+		updateLog4jConfiguration(peerId);
+		new LoadConfig();
+		new LoadPeerList();
+		Handshake.setId(peerId);
+		if (LoadPeerList.getPeer(peerId).hasSharedFile()) {
+			FileHandler.splitFile();
+		}
+	}
+
+	private static void updateLog4jConfiguration(String peerId) {
+		Properties properties = new Properties();
+		try {
+			InputStream inputStream = peerProcess.class
+					.getResourceAsStream("/log4j.properties");
+			properties.load(inputStream);
+			inputStream.close();
+		} catch (IOException e) {
+		}
+		properties.setProperty("log4j.appender.FILE.File",
+				System.getProperty("user.home") + "/project/log_peer_" + peerId + ".log");
+
+		File file = new File(System.getProperty("user.home") + "/project/dummy.txt");
+		file.delete();
+	}
+
+	public static String getId() {
+		return peerId;
+	}
+}
