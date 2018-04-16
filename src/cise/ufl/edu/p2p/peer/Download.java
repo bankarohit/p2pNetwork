@@ -66,7 +66,7 @@ public class Download implements Runnable {
 				e.printStackTrace();
 			}			
 			String remotePeerId = Handshake.getRemotePeerId(message);
-			sharedData.addConnection(peerId);
+			sharedData.addConnection(remotePeerId);
 			sharedData.setUploadHandshake(true);
 			sharedData.notify();
 		}
