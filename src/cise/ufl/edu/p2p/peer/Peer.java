@@ -11,9 +11,10 @@ import cise.ufl.edu.p2p.utils.LoadPeerList;
 public class Peer {
 
 	private NetworkInfo network;
-
+	ConnectionManager connectionManager;
 	public Peer(NetworkInfo n) {
 		network = n;
+		connectionManager = ConnectionManager.getInstance();
 		if (network.hasSharedFile()) {
 			FileHandler.hasFile();
 		}
@@ -37,7 +38,7 @@ public class Peer {
 		// TODO: End connection when all peers have received files
 		while (!allPeersReceivedFiles) {
 			Socket peerSocket = socket.accept();
-			Connection conn = new Connection(peerSocket);
+			connectionManager.createConnection(peerSocket);
 
 		}
 		socket.close();
@@ -59,8 +60,7 @@ public class Peer {
 		String peerHost = peerInfo.getHostName();
 		try {
 			Socket clientSocket = new Socket(peerHost, peerPort);
-			SharedData data = new SharedData();
-			Connection conn = new Connection(clientSocket, peerInfo.getPeerId());
+			connectionManager.createConnection(clientSocket, peerInfo.getPeerId());
 
 		} catch (UnknownHostException e) {
 			System.out.println("Could not find host: " + peerHost);
