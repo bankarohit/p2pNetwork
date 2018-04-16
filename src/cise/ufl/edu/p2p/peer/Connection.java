@@ -10,23 +10,42 @@ public class Connection {
 	Download download;
 	SharedData sharedData;
 	double speed;
+	
+	public double getSpeed() {
+		return speed;
+	}
+
+	
 	Socket peerSocket;
 	String remotePeerId;
+	boolean choked;
 	
+	public boolean isChoked() {
+		return choked;
+	}
+
+	public void setChoked(boolean choked) {
+		this.choked = choked;
+		if(choked) {
+			upload.choke();
+			download.choke();
+		}
+	}
+
 	public Connection(Socket peerSocket) {
 		sharedData = new SharedData(this);
-		Upload upload = new Upload(peerSocket, sharedData);
-		Download download = new Download(peerSocket, sharedData);
-		Thread uploadThread = new Thread(upload);
-		Thread downloadThread = new Thread(download);
-		uploadThread.start();
-		downloadThread.start();
+		upload = new Upload(peerSocket, sharedData);
+		download = new Download(peerSocket, sharedData);
+		createThreads(upload, download);
 	}
 	
 	public Connection(Socket peerSocket, String peerId) {
 		sharedData = new SharedData(this);
-		Upload upload = new Upload(peerSocket, peerId, sharedData);
-		Download download = new Download(peerSocket, peerId, sharedData);
+		upload = new Upload(peerSocket, peerId, sharedData);
+		download = new Download(peerSocket, peerId, sharedData);
+		createThreads(upload, download);
+	}
+	public void createThreads(Upload upload, Download download) {
 		Thread uploadThread = new Thread(upload);
 		Thread downloadThread = new Thread(download);
 		uploadThread.start();

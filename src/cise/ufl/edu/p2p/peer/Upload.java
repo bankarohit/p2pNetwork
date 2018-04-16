@@ -37,10 +37,18 @@ public class Upload implements Runnable {
 			e.printStackTrace();
 		}
 	}
+	
+	protected void choke() {
+		try {
+			Thread.sleep(CommonProperties.getUnchokingInterval() * 1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	@Override
-	public void run() {
-		
+	public void run() {		
 		synchronized(sharedData) {
 			while(!sharedData.getUploadHandshake()) {
 				try {

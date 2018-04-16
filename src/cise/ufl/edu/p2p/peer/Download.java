@@ -24,6 +24,15 @@ public class Download implements Runnable {
 			e.printStackTrace();
 		}
 	}
+	
+	protected void choke() {
+		try {
+			Thread.sleep(CommonProperties.getUnchokingInterval() * 1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	// server thread initialization
 	public Download(Socket clientSocket, SharedData data) {

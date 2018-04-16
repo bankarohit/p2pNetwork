@@ -16,7 +16,7 @@ public class SharedData {
 	public void addConnection(String peerId) {
 		remotePeerId = peerId;
 		ConnectionManager connectionManager = ConnectionManager.getInstance();
-		connectionManager.addConnection(peerId, conn);
+		connectionManager.addConnection(conn);
 	}
 
 	public synchronized String getRemotePeerId() {
