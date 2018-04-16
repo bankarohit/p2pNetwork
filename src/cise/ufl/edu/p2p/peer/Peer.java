@@ -37,13 +37,7 @@ public class Peer {
 		// TODO: End connection when all peers have received files
 		while (!allPeersReceivedFiles) {
 			Socket peerSocket = socket.accept();
-			SharedData data = new SharedData();
-			Upload upload = new Upload(peerSocket, data);
-			Download download = new Download(peerSocket, data);
-			Thread uploadThread = new Thread(upload);
-			Thread downloadThread = new Thread(download);
-			uploadThread.start();
-			downloadThread.start();
+			Connection conn = new Connection(peerSocket);
 
 		}
 		socket.close();
@@ -66,12 +60,7 @@ public class Peer {
 		try {
 			Socket clientSocket = new Socket(peerHost, peerPort);
 			SharedData data = new SharedData();
-			Upload upload = new Upload(clientSocket, peerInfo.getPeerId(), data);
-			Download download = new Download(clientSocket, peerInfo.getPeerId(), data);
-			Thread uploadThread = new Thread(upload);
-			Thread downloadThread = new Thread(download);
-			uploadThread.start();
-			downloadThread.start();
+			Connection conn = new Connection(clientSocket, peerInfo.getPeerId());
 
 		} catch (UnknownHostException e) {
 			System.out.println("Could not find host: " + peerHost);
