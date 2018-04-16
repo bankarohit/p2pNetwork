@@ -3,10 +3,10 @@ package cise.ufl.edu.p2p.peer;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 
 import cise.ufl.edu.p2p.messages.Handshake;
-
+import cise.ufl.edu.p2p.messages.Message;
+import cise.ufl.edu.p2p.messages.Message.Type;
 
 public class Upload implements Runnable {
 	private Socket socket;
@@ -37,7 +37,7 @@ public class Upload implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
+
 	protected void choke() {
 		try {
 			Thread.sleep(CommonProperties.getUnchokingInterval() * 1000);
@@ -48,9 +48,9 @@ public class Upload implements Runnable {
 	}
 
 	@Override
-	public void run() {		
-		synchronized(sharedData) {
-			while(!sharedData.getUploadHandshake()) {
+	public void run() {
+		synchronized (sharedData) {
+			while (!sharedData.getUploadHandshake()) {
 				try {
 					sharedData.wait();
 				} catch (InterruptedException e) {
@@ -61,9 +61,9 @@ public class Upload implements Runnable {
 		sendHandshakeMessage();
 	}
 
-	private void sendHandshakeMessage() {		
+	private void sendHandshakeMessage() {
 		String handshakeMessage = Handshake.getMessage();
-		synchronized(sharedData) {
+		synchronized (sharedData) {
 			try {
 				System.out.println("Sending message: " + handshakeMessage);
 				out.writeBytes(handshakeMessage);
@@ -71,11 +71,51 @@ public class Upload implements Runnable {
 			} catch (IOException e) {
 				System.out.println("Could not send handshake message. Retrying..");
 				e.printStackTrace();
-			}		
+			}
 			sharedData.setDownloadHandshake(true);
 			sharedData.notify();
 		}
 	}
 
+	public void sendMessage(Type messageType) {
+		byte[] message = null;
+		switch (messageType) {
+		case CHOKE:
+			break;
+		case UNCHOKE:
+			break;
+		case INTERESTED:
+			message = Message.getMessage(messageType);
+			break;
+		case NOTINTERESTED:
+			break;
+		case HAVE:
+			break;
+		case BITFIELD:
+			message = Message.getMessage(messageType);
+			if (message != null) {
+				System.out.println("Sending bitfield message");
+			}
+			break;
+		case REQUEST:
+			break;
+		case PIECE:
+			break;
+		}
+		if (message != null) {
+			send(message);
+		}
+
+	}
+
+	private void send(byte[] message) {
+		try {
+			out.write(message);
+			out.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 }

@@ -1,10 +1,6 @@
 package cise.ufl.edu.p2p.peer;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 
 import cise.ufl.edu.p2p.messages.Handshake;
 import cise.ufl.edu.p2p.utils.LoadConfig;
@@ -25,7 +21,7 @@ public class peerProcess {
 	private static void init() {
 		// Updates Log Configuration at run time so that peerId is appended to
 		// the filename
-		
+
 		new LoadConfig();
 		new LoadPeerList();
 		Handshake.setId(peerId);

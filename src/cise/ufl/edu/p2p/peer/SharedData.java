@@ -1,18 +1,22 @@
 package cise.ufl.edu.p2p.peer;
 
+import java.nio.ByteBuffer;
 import java.util.BitSet;
+
+import cise.ufl.edu.p2p.messages.Message;
 
 public class SharedData {
 	private volatile boolean bitfieldSent;
 	private BitSet peerBitset;
 	private String remotePeerId;
 	private Connection conn;
-	
+	private volatile boolean uploadHandshake;
+	private volatile boolean downloadHandshake;
 
 	public SharedData(Connection connection) {
 		conn = connection;
 	}
-	
+
 	public void addConnection(String peerId) {
 		remotePeerId = peerId;
 		ConnectionManager connectionManager = ConnectionManager.getInstance();
@@ -27,9 +31,6 @@ public class SharedData {
 		this.remotePeerId = remotePeerId;
 	}
 
-	private volatile boolean uploadHandshake;
-	private volatile boolean downloadHandshake;
-	
 	public synchronized boolean getDownloadHandshake() {
 		return downloadHandshake;
 	}
@@ -54,8 +55,16 @@ public class SharedData {
 		bitfieldSent = true;
 	}
 
-	public void setPeerBitset(BitSet peerBitset) {
-		this.peerBitset = peerBitset;
+	public void setPeerBitset(byte[] bitSet) {
+		this.peerBitset = BitSet.valueOf(ByteBuffer.wrap(bitSet));
+		StringBuilder s = new StringBuilder();
+		System.out.println("Bitset size: " + peerBitset.size());
+		for (int i = 0; i < peerBitset.size(); i++) {
+			s.append(peerBitset.get(i) == true ? 1 : 0);
+		}
+
+		System.out.println(s);
+
 	}
 
 	public synchronized void updatePeerBitset(int index) {
@@ -64,6 +73,20 @@ public class SharedData {
 
 	public synchronized boolean peerHasPiece(int index) {
 		return peerBitset.get(index);
+	}
+
+	public void sendInterestedNotinterested() {
+		Message.Type messageType = null;
+		if (peerBitset.equals(FileHandler.getFilePieces())) {
+			messageType = Message.Type.NOTINTERESTED;
+		}
+		messageType = Message.Type.INTERESTED;
+		conn.sendMessage(messageType);
+	}
+
+	public void sendBitfieldMessage() {
+		conn.sendMessage(Message.Type.BITFIELD);
+
 	}
 
 }

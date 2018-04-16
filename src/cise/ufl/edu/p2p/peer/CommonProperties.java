@@ -25,6 +25,7 @@ public class CommonProperties {
 	public static void calculateNumberOfPieces() {
 		numberOfPieces = (int) (fileSize % pieceSize) == 0 ? (int) (fileSize / pieceSize)
 				: (int) (fileSize / pieceSize) + 1;
+		System.out.println("Number of pieces: " + numberOfPieces);
 	}
 
 	public static void setUnchokingInterval(int p) {
@@ -64,10 +65,9 @@ public class CommonProperties {
 	}
 
 	public static String print() {
-		return "PeerProperties [numberOfPreferredNeighbors=" + numberOfPreferredNeighbors
-				+ ", unchokingInterval=" + unchokingInterval + ", optimisticUnchokingInterval="
-				+ optimisticUnchokingInterval + ", fileName=" + fileName + ", fileSize="
-				+ fileSize + ", pieceSize=" + pieceSize + "]";
+		return "PeerProperties [numberOfPreferredNeighbors=" + numberOfPreferredNeighbors + ", unchokingInterval="
+				+ unchokingInterval + ", optimisticUnchokingInterval=" + optimisticUnchokingInterval + ", fileName="
+				+ fileName + ", fileSize=" + fileSize + ", pieceSize=" + pieceSize + "]";
 	}
 
 	public static void setNumberOfPreferredNeighbors(int k) {
