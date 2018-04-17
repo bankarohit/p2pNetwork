@@ -25,7 +25,8 @@ public class SharedFile {
 			int pieceIndex = 0;
 			// TODO: will fileInputStream always read pieceSize amount of data?
 			try {
-				while (fis.read(piece) != -1) {
+				for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
+					fis.read(piece);
 					file.put(pieceIndex++, piece);
 				}
 			} catch (IOException fileReadError) {
@@ -45,6 +46,10 @@ public class SharedFile {
 				System.out.println("Error while closing fileinputstream after reading file");
 			}
 		}
+
+		System.out.println("SharedFile.splitFile() - Filepieces: " + filePieces.size());
+		System.out.println("SharedFile.splitFile() - Filepieces cardinality: " + filePieces.length());
+		System.out.println("SharedFile.splitFile() - Filepieces 0 index: " + filePieces.get(0));
 	}
 
 	public static byte[] getPiece(int index) {

@@ -5,13 +5,15 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import cise.ufl.edu.p2p.messages.Handshake;
-import cise.ufl.edu.p2p.messages.Message;
 import cise.ufl.edu.p2p.messages.Message.Type;
+import cise.ufl.edu.p2p.messages.MessageManager;
 
 public class Upload implements Runnable {
 	private Socket socket;
 	private ObjectOutputStream out;
 	private SharedData sharedData;
+	private MessageManager messageManager = MessageManager.getInstance();
+	private Peer host = Peer.getInstance();
 
 	// client thread initialization
 	public Upload(Socket clientSocket, String id, SharedData data) {
@@ -78,23 +80,27 @@ public class Upload implements Runnable {
 	}
 
 	public void sendMessage(Type messageType) {
-		byte[] message = null;
+		byte[] messageLength = new byte[4];
+		byte[] payload;
+
 		switch (messageType) {
 		case CHOKE:
 			break;
 		case UNCHOKE:
 			break;
 		case INTERESTED:
-			message = Message.getMessage(messageType);
 			break;
 		case NOTINTERESTED:
 			break;
 		case HAVE:
 			break;
 		case BITFIELD:
-			message = Message.getMessage(messageType);
-			if (message != null) {
-				System.out.println("Sending bitfield message");
+			if (host.hasFile()) {
+				messageLength = messageManager.getMessageLength(messageType);
+				send(messageLength);
+				payload = messageManager.getPayload(messageType);
+				send(payload);
+				System.out.println("Payload sent - len: " + messageManager.getLength(messageLength));
 			}
 			break;
 		case REQUEST:
@@ -102,10 +108,6 @@ public class Upload implements Runnable {
 		case PIECE:
 			break;
 		}
-		if (message != null) {
-			send(message);
-		}
-
 	}
 
 	private void send(byte[] message) {

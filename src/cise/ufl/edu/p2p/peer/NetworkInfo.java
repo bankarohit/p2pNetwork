@@ -40,7 +40,7 @@ public class NetworkInfo {
 		this.port = port;
 	}
 
-	public boolean hasSharedFile() {
+	protected boolean hasSharedFile() {
 		return hasSharedFile;
 	}
 
@@ -50,7 +50,7 @@ public class NetworkInfo {
 
 	@Override
 	public String toString() {
-		return "Peer [peerId=" + peerId + ", hostName=" + hostName + ", port=" + port
-				+ ", hasSharedFile=" + hasSharedFile + "]";
+		return "Peer [peerId=" + peerId + ", hostName=" + hostName + ", port=" + port + ", hasSharedFile="
+				+ hasSharedFile + "]";
 	}
 }

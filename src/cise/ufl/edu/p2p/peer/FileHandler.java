@@ -21,10 +21,6 @@ public class FileHandler {
 		return filePieces.nextClearBit(0);
 	}
 
-	public static boolean hasFile() {
-		return file.size() == 0;
-	}
-
 	public static synchronized void receivedPiece(int index) {
 		filePieces.set(index);
 	}
@@ -53,8 +49,8 @@ public class FileHandler {
 					fileSize -= fis.read(piece);
 					if (fileSize < pieceSize)
 						pieceSize = (int) fileSize;
-					file.put(pieceIndex++, piece);
-					filePieces.set(pieceIndex);
+					file.put(pieceIndex, piece);
+					filePieces.set(pieceIndex++);
 					// System.out.println(piece.hashCode());
 					byte[] empty = new byte[pieceSize];
 					piece = empty;
@@ -76,7 +72,8 @@ public class FileHandler {
 				System.out.println("Error while closing fileinputstream after reading file");
 			}
 		}
-		System.out.println("Filepieces: " + filePieces.size());
+		System.out.println("FileHandler.splitFile() - Filepieces: " + filePieces.length());
+		System.out.println("FileHandler.splitFile() - Filepieces cardinality: " + filePieces.get(0));
 	}
 
 	// WriteToFile will write all chunks to an output file.

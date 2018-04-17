@@ -25,7 +25,7 @@ public class CommonProperties {
 	public static void calculateNumberOfPieces() {
 		numberOfPieces = (int) (fileSize % pieceSize) == 0 ? (int) (fileSize / pieceSize)
 				: (int) (fileSize / pieceSize) + 1;
-		System.out.println("Number of pieces: " + numberOfPieces);
+		System.out.println("CommonProperties.calculateNumberOfPieces - Number of pieces: " + numberOfPieces);
 	}
 
 	public static void setUnchokingInterval(int p) {

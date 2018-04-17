@@ -3,14 +3,18 @@ package cise.ufl.edu.p2p.peer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.BitSet;
 
 import cise.ufl.edu.p2p.messages.Handshake;
 import cise.ufl.edu.p2p.messages.Message;
+import cise.ufl.edu.p2p.messages.MessageManager;
 
 public class Download implements Runnable {
 	private Socket socket;
 	private ObjectInputStream in;
 	private SharedData sharedData;
+	private MessageManager messageManager = MessageManager.getInstance();
 
 	// client thread initialization
 	public Download(Socket clientSocket, String peerId, SharedData data) {
@@ -58,14 +62,14 @@ public class Download implements Runnable {
 			}
 		}
 		receiveHandshake();
-		processMessage();
+		receiveMessage();
 
 	}
 
 	// TODO : Define incorrect peer id error
 	private void receiveHandshake() {
 		synchronized (sharedData) {
-			ConnectionManager connectionManager = ConnectionManager.getInstance();
+
 			byte[] message = new byte[32];
 			try {
 				in.readFully(message);
@@ -82,11 +86,18 @@ public class Download implements Runnable {
 		sharedData.sendBitfieldMessage();
 	}
 
-	private void processMessage() {
-		byte[] metadata = new byte[5];
-		receiveMessage(metadata);
-		Message.Type messageType = Message.getType(metadata);
+	private void receiveMessage() {
+		byte[] messageLength = new byte[4];
+		receiveMessageLength(messageLength);
+		int len = messageManager.getLength(messageLength);
+		byte[] payload = new byte[len];
+		receiveMessagePayload(payload);
+		processPayload(payload);
 
+	}
+
+	private void processPayload(byte[] payload) {
+		Message.Type messageType = messageManager.getType(payload[0]);
 		switch (messageType) {
 		case CHOKE:
 			choke();
@@ -100,29 +111,33 @@ public class Download implements Runnable {
 		case HAVE:
 			break;
 		case BITFIELD:
-			int length = Message.getLength(metadata);
-			byte[] message = new byte[length];
-			message = receiveMessage(message);
-			sharedData.setPeerBitset(message);
-			sharedData.sendInterestedNotinterested();
+			FileHandler.setFilePieces(BitSet.valueOf(ByteBuffer.wrap(payload, 1, payload.length - 1)));
+			System.out.println("In download class - Bitfield received");
+			System.out.println("BitSet cardinality: " + FileHandler.getFilePieces().length());
 			break;
 		case REQUEST:
 			break;
 		case PIECE:
 			break;
-
 		}
-
 	}
 
-	private byte[] receiveMessage(byte[] message) {
+	private void receiveMessageLength(byte[] messageLength) {
+		receiveRawData(messageLength);
+	}
+
+	private void receiveMessagePayload(byte[] payload) {
+		receiveRawData(payload);
+	}
+
+	private void receiveRawData(byte[] message) {
+		System.out.println("Reading message of len: " + message.length);
 		try {
 			in.readFully(message);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return message;
+		System.out.println("Message read successfully!");
 	}
 
 }

@@ -10,14 +10,21 @@ import cise.ufl.edu.p2p.utils.LoadPeerList;
 
 public class Peer {
 
+	private static Peer host = new Peer();
 	private NetworkInfo network;
 	ConnectionManager connectionManager;
-	public Peer(NetworkInfo n) {
-		network = n;
+
+	private Peer() {
+		network = LoadPeerList.getPeer(peerProcess.getId());
 		connectionManager = ConnectionManager.getInstance();
-		if (network.hasSharedFile()) {
-			FileHandler.hasFile();
-		}
+	}
+
+	public static Peer getInstance() {
+		return host;
+	}
+
+	protected boolean hasFile() {
+		return network.hasSharedFile();
 	}
 
 	// TODO: Optimize by maintaining index upto which all files have been received
@@ -66,8 +73,7 @@ public class Peer {
 			System.out.println("Could not find host: " + peerHost);
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println(
-					"Found peerhost " + peerHost + " but could not establish TCP connection");
+			System.out.println("Found peerhost " + peerHost + " but could not establish TCP connection");
 			e.printStackTrace();
 		}
 	}

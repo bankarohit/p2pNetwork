@@ -13,7 +13,7 @@ public class peerProcess {
 		peerId = args[0];
 		init();
 		System.out.println(CommonProperties.print());
-		Peer current = new Peer(LoadPeerList.getPeer(peerId));
+		Peer current = Peer.getInstance();
 		current.createTCPConnections();
 		current.listenForConnections();
 	}
