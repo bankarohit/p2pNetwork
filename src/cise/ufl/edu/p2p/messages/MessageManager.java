@@ -44,36 +44,38 @@ public class MessageManager {
 		return temp.getInt();
 	}
 
-	public byte[] getMessageLength(Type messageType) {
+	public byte[] getMessageLength(Type messageType, ByteBuffer data) {
 		byte[] messageLength = new byte[4];
+		ByteBuffer bytebuffer = ByteBuffer.allocate(4);
 		switch (messageType) {
 		case CHOKE:
 		case UNCHOKE:
 		case INTERESTED:
 		case NOTINTERESTED:
-			ByteBuffer bytebuffer = ByteBuffer.allocate(4);
 			bytebuffer.putInt(0, 1);
-			bytebuffer.get(messageLength, 0, 4);
 			break;
 		case HAVE:
+			bytebuffer.putInt(0, 5);
 			break;
 		case BITFIELD:
 			if (host.hasFile()) {
 				BitField bitfield = BitField.getInstance();
 				messageLength = bitfield.getMessageLength();
+				return messageLength;
 			} else
 				return null;
-			break;
 		case REQUEST:
+			bytebuffer.putInt(0, 5);
 			break;
 		case PIECE:
 			break;
 		}
+		bytebuffer.get(messageLength, 0, 4);
 		return messageLength;
 	}
 
-	public byte[] getPayload(Type messageType) {
-		byte[] payload = null;
+	public byte[] getPayload(Type messageType, ByteBuffer data) {
+		byte[] payload = new byte[5];
 
 		switch (messageType) {
 		case CHOKE:
@@ -91,10 +93,16 @@ public class MessageManager {
 			payload = bitfield.getPayload();
 			break;
 		case REQUEST:
+			payload[0] = 6;
+			data.get(payload, 1, 4);
 			break;
 		case PIECE:
 			break;
 		}
 		return payload;
+	}
+
+	public ByteBuffer getContent(byte[] payload) {
+		return ByteBuffer.wrap(payload, 1, payload.length - 1);
 	}
 }

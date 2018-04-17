@@ -2,8 +2,6 @@ package cise.ufl.edu.p2p.peer;
 
 import java.net.Socket;
 
-import cise.ufl.edu.p2p.messages.Message.Type;
-
 public class Connection {
 	Upload upload;
 	Download download;
@@ -49,7 +47,8 @@ public class Connection {
 		downloadThread.start();
 	}
 
-	public void sendMessage(Type messageType) {
-		upload.sendMessage(messageType);
+	public void sendMessage(byte[] messageLength, byte[] payload) {
+		upload.sendMessage(messageLength, payload);
+
 	}
 }

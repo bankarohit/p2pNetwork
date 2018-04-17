@@ -5,18 +5,19 @@ import java.io.ObjectInputStream;
 import java.net.Socket;
 
 import cise.ufl.edu.p2p.messages.Handshake;
-import cise.ufl.edu.p2p.messages.Message;
-import cise.ufl.edu.p2p.messages.MessageManager;
 
 public class Download implements Runnable {
 	private Socket socket;
 	private ObjectInputStream in;
 	private SharedData sharedData;
-	private MessageManager messageManager = MessageManager.getInstance();
 
 	// client thread initialization
-	public Download(Socket clientSocket, String peerId, SharedData data) {
-		socket = clientSocket;
+	public Download(Socket socket, String peerId, SharedData data) {
+		init(socket, data);
+	}
+
+	private void init(Socket socket, SharedData data) {
+		this.socket = socket;
 		sharedData = data;
 		try {
 			in = new ObjectInputStream(socket.getInputStream());
@@ -36,16 +37,9 @@ public class Download implements Runnable {
 	}
 
 	// server thread initialization
-	public Download(Socket clientSocket, SharedData data) {
-		socket = clientSocket;
-		sharedData = data;
+	public Download(Socket socket, SharedData data) {
+		init(socket, data);
 		sharedData.setDownloadHandshake(true);
-		try {
-			in = new ObjectInputStream(socket.getInputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	@Override
@@ -87,37 +81,11 @@ public class Download implements Runnable {
 	private void receiveMessage() {
 		byte[] messageLength = new byte[4];
 		receiveMessageLength(messageLength);
-		int len = messageManager.getLength(messageLength);
+		int len = sharedData.processMessageLength(messageLength);
 		byte[] payload = new byte[len];
 		receiveMessagePayload(payload);
-		processPayload(payload);
+		sharedData.processPayload(payload);
 
-	}
-
-	private void processPayload(byte[] payload) {
-		Message.Type messageType = messageManager.getType(payload[0]);
-		System.out.println("Received: " + messageType);
-		switch (messageType) {
-		case CHOKE:
-			choke();
-			break;
-		case UNCHOKE:
-			break;
-		case INTERESTED:
-			break;
-		case NOTINTERESTED:
-			break;
-		case HAVE:
-			break;
-		case BITFIELD:
-			sharedData.setPeerBitset(payload);
-			sharedData.sendInterestedNotinterested();
-			break;
-		case REQUEST:
-			break;
-		case PIECE:
-			break;
-		}
 	}
 
 	private void receiveMessageLength(byte[] messageLength) {

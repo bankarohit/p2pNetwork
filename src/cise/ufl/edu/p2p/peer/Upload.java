@@ -5,44 +5,29 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 import cise.ufl.edu.p2p.messages.Handshake;
-import cise.ufl.edu.p2p.messages.Message.Type;
-import cise.ufl.edu.p2p.messages.MessageManager;
 
 public class Upload implements Runnable {
 	private Socket socket;
 	private ObjectOutputStream out;
 	private SharedData sharedData;
-	private MessageManager messageManager = MessageManager.getInstance();
 
 	// client thread initialization
-	public Upload(Socket clientSocket, String id, SharedData data) {
-		socket = clientSocket;
-		sharedData = data;
+	public Upload(Socket socket, String id, SharedData data) {
+		init(socket, data);
 		sharedData.setUploadHandshake(true);
-		try {
-			out = new ObjectOutputStream(socket.getOutputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	// server thread initialization
-	public Upload(Socket clientSocket, SharedData data) {
+	public Upload(Socket socket, SharedData data) {
+		init(socket, data);
+	}
+
+	private void init(Socket clientSocket, SharedData data) {
 		socket = clientSocket;
 		sharedData = data;
 		try {
 			out = new ObjectOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	protected void choke() {
-		try {
-			Thread.sleep(CommonProperties.getUnchokingInterval() * 1000);
-		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -78,21 +63,18 @@ public class Upload implements Runnable {
 		}
 	}
 
-	public void sendMessage(Type messageType) {
-		byte[] messageLength = messageManager.getMessageLength(messageType);
+	public void sendMessage(byte[] messageLength, byte[] payload) {
 		if (messageLength != null) {
-			send(messageLength);
-			byte[] payload = messageManager.getPayload(messageType);
-			send(payload);
+			sendRawData(messageLength);
+			sendRawData(payload);
 		}
 	}
 
-	private void send(byte[] message) {
+	private void sendRawData(byte[] message) {
 		try {
 			out.write(message);
 			out.flush();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

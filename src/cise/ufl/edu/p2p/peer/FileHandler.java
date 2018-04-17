@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FileHandler {
 
 	private static ConcurrentHashMap<Integer, byte[]> file = new ConcurrentHashMap<Integer, byte[]>();
-	private static BitSet filePieces = new BitSet(CommonProperties.getNumberOfPieces());
+	private static volatile BitSet filePieces = new BitSet(CommonProperties.getNumberOfPieces());
 
 	public static byte[] getPiece(int index) {
 		return file.get(index);
