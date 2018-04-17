@@ -10,7 +10,6 @@ public class BitField extends Message {
 
 	private BitField() {
 		content = FileHandler.getFilePieces().toByteArray();
-		System.out.println("Content length: " + content.length);
 		type = 5;
 		bytebuffer = ByteBuffer.allocate(4);
 		bytebuffer.putInt(0, content.length + 1);

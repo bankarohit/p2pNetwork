@@ -3,9 +3,11 @@ package cise.ufl.edu.p2p.messages;
 import java.nio.ByteBuffer;
 
 import cise.ufl.edu.p2p.messages.Message.Type;
+import cise.ufl.edu.p2p.peer.Peer;
 
 public class MessageManager {
 	private static MessageManager messageManager = new MessageManager();
+	private Peer host = Peer.getInstance();
 
 	private MessageManager() {
 
@@ -46,18 +48,21 @@ public class MessageManager {
 		byte[] messageLength = new byte[4];
 		switch (messageType) {
 		case CHOKE:
-			break;
 		case UNCHOKE:
-			break;
 		case INTERESTED:
-			break;
 		case NOTINTERESTED:
+			ByteBuffer bytebuffer = ByteBuffer.allocate(4);
+			bytebuffer.putInt(0, 1);
+			bytebuffer.get(messageLength, 0, 4);
 			break;
 		case HAVE:
 			break;
 		case BITFIELD:
-			BitField bitfield = BitField.getInstance();
-			messageLength = bitfield.getMessageLength();
+			if (host.hasFile()) {
+				BitField bitfield = BitField.getInstance();
+				messageLength = bitfield.getMessageLength();
+			} else
+				return null;
 			break;
 		case REQUEST:
 			break;
@@ -72,13 +77,13 @@ public class MessageManager {
 
 		switch (messageType) {
 		case CHOKE:
-			break;
+			return new byte[] { 0 };
 		case UNCHOKE:
-			break;
+			return new byte[] { 1 };
 		case INTERESTED:
-			break;
+			return new byte[] { 2 };
 		case NOTINTERESTED:
-			break;
+			return new byte[] { 3 };
 		case HAVE:
 			break;
 		case BITFIELD:

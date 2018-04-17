@@ -3,8 +3,6 @@ package cise.ufl.edu.p2p.peer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.util.BitSet;
 
 import cise.ufl.edu.p2p.messages.Handshake;
 import cise.ufl.edu.p2p.messages.Message;
@@ -98,6 +96,7 @@ public class Download implements Runnable {
 
 	private void processPayload(byte[] payload) {
 		Message.Type messageType = messageManager.getType(payload[0]);
+		System.out.println("Received: " + messageType);
 		switch (messageType) {
 		case CHOKE:
 			choke();
@@ -111,9 +110,8 @@ public class Download implements Runnable {
 		case HAVE:
 			break;
 		case BITFIELD:
-			FileHandler.setFilePieces(BitSet.valueOf(ByteBuffer.wrap(payload, 1, payload.length - 1)));
-			System.out.println("In download class - Bitfield received");
-			System.out.println("BitSet cardinality: " + FileHandler.getFilePieces().length());
+			sharedData.setPeerBitset(payload);
+			sharedData.sendInterestedNotinterested();
 			break;
 		case REQUEST:
 			break;
@@ -131,13 +129,11 @@ public class Download implements Runnable {
 	}
 
 	private void receiveRawData(byte[] message) {
-		System.out.println("Reading message of len: " + message.length);
 		try {
 			in.readFully(message);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("Message read successfully!");
 	}
 
 }

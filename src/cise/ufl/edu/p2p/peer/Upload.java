@@ -13,7 +13,6 @@ public class Upload implements Runnable {
 	private ObjectOutputStream out;
 	private SharedData sharedData;
 	private MessageManager messageManager = MessageManager.getInstance();
-	private Peer host = Peer.getInstance();
 
 	// client thread initialization
 	public Upload(Socket clientSocket, String id, SharedData data) {
@@ -80,33 +79,11 @@ public class Upload implements Runnable {
 	}
 
 	public void sendMessage(Type messageType) {
-		byte[] messageLength = new byte[4];
-		byte[] payload;
-
-		switch (messageType) {
-		case CHOKE:
-			break;
-		case UNCHOKE:
-			break;
-		case INTERESTED:
-			break;
-		case NOTINTERESTED:
-			break;
-		case HAVE:
-			break;
-		case BITFIELD:
-			if (host.hasFile()) {
-				messageLength = messageManager.getMessageLength(messageType);
-				send(messageLength);
-				payload = messageManager.getPayload(messageType);
-				send(payload);
-				System.out.println("Payload sent - len: " + messageManager.getLength(messageLength));
-			}
-			break;
-		case REQUEST:
-			break;
-		case PIECE:
-			break;
+		byte[] messageLength = messageManager.getMessageLength(messageType);
+		if (messageLength != null) {
+			send(messageLength);
+			byte[] payload = messageManager.getPayload(messageType);
+			send(payload);
 		}
 	}
 

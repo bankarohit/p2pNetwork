@@ -55,8 +55,8 @@ public class SharedData {
 		bitfieldSent = true;
 	}
 
-	public void setPeerBitset(byte[] bitSet) {
-		this.peerBitset = BitSet.valueOf(ByteBuffer.wrap(bitSet));
+	public void setPeerBitset(byte[] payload) {
+		this.peerBitset = BitSet.valueOf(ByteBuffer.wrap(payload, 1, payload.length - 1));
 	}
 
 	public synchronized void updatePeerBitset(int index) {

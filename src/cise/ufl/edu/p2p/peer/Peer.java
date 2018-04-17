@@ -23,7 +23,7 @@ public class Peer {
 		return host;
 	}
 
-	protected boolean hasFile() {
+	public boolean hasFile() {
 		return network.hasSharedFile();
 	}
 
