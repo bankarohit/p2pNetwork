@@ -1,6 +1,7 @@
 package cise.ufl.edu.p2p.peer;
 
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 public class Connection {
 	Upload upload;
@@ -10,6 +11,7 @@ public class Connection {
 	Socket peerSocket;
 	String remotePeerId;
 	boolean choked;
+	private ConnectionManager connectionManager = ConnectionManager.getInstance();
 
 	public double getSpeed() {
 		return speed;
@@ -38,6 +40,7 @@ public class Connection {
 		upload = new Upload(peerSocket, peerId, sharedData);
 		download = new Download(peerSocket, peerId, sharedData);
 		createThreads(upload, download);
+		sharedData.setUploadHandshake();
 	}
 
 	public void createThreads(Upload upload, Download download) {
@@ -48,7 +51,44 @@ public class Connection {
 	}
 
 	public void sendMessage(byte[] messageLength, byte[] payload) {
-		upload.sendMessage(messageLength, payload);
+		synchronized (upload.lengthQueue) {
+			upload.addMessageLength(messageLength);
+			upload.lengthQueue.notify();
+			// System.out.println("Added message length");
+		}
+		synchronized (upload.payloadQueue) {
+			/// System.out.println("Added message payload");
+			upload.addMessagePayload(payload);
+			upload.payloadQueue.notify();
+		}
+	}
+
+	public void tellAllNeighbors(ByteBuffer pieceIndex) {
+		connectionManager.tellAllNeighbors(pieceIndex);
+	}
+
+	protected boolean isRequested(int pieceIndex) {
+		return connectionManager.isRequested(pieceIndex);
+	}
+
+	public void addInterestedConnection() {
+		connectionManager.addInterestedConnection(remotePeerId, this);
+	}
+
+	public void addNotInterestedConnection() {
+		connectionManager.addNotInterestedConnection(remotePeerId, this);
+	}
+
+	public void chokeDownload() {
+		download.choke();
+	}
+
+	public void chokeUpload() {
+		upload.choke();
+	}
+
+	public void receiveMessage() {
+		download.receiveMessage();
 
 	}
 }

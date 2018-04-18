@@ -1,14 +1,12 @@
 package cise.ufl.edu.p2p.peer;
 
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.net.Socket;
-
-import cise.ufl.edu.p2p.messages.Handshake;
 
 public class Download implements Runnable {
 	private Socket socket;
-	private ObjectInputStream in;
+	private DataInputStream in;
 	private SharedData sharedData;
 
 	// client thread initialization
@@ -20,7 +18,7 @@ public class Download implements Runnable {
 		this.socket = socket;
 		sharedData = data;
 		try {
-			in = new ObjectInputStream(socket.getInputStream());
+			in = new DataInputStream(socket.getInputStream());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -39,46 +37,16 @@ public class Download implements Runnable {
 	// server thread initialization
 	public Download(Socket socket, SharedData data) {
 		init(socket, data);
-		sharedData.setDownloadHandshake(true);
 	}
 
 	@Override
 	public void run() {
-		synchronized (sharedData) {
-			while (!sharedData.getDownloadHandshake()) {
-				try {
-					sharedData.wait();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		receiveHandshake();
-		receiveMessage();
-
+		byte[] handshake = new byte[32];
+		receiveRawData(handshake);
+		sharedData.processPayload(null);
 	}
 
-	// TODO : Define incorrect peer id error
-	private void receiveHandshake() {
-		synchronized (sharedData) {
-
-			byte[] message = new byte[32];
-			try {
-				in.readFully(message);
-				System.out.println("Received handshake message: " + new String(message, "UTF-8"));
-			} catch (IOException e) {
-				System.out.println("Error while receiving handshake message");
-				e.printStackTrace();
-			}
-			String remotePeerId = Handshake.getRemotePeerId(message);
-			sharedData.addConnection(remotePeerId);
-			sharedData.setUploadHandshake(true);
-			sharedData.notify();
-		}
-		sharedData.sendBitfieldMessage();
-	}
-
-	private void receiveMessage() {
+	protected void receiveMessage() {
 		byte[] messageLength = new byte[4];
 		receiveMessageLength(messageLength);
 		int len = sharedData.processMessageLength(messageLength);
@@ -90,18 +58,20 @@ public class Download implements Runnable {
 
 	private void receiveMessageLength(byte[] messageLength) {
 		receiveRawData(messageLength);
+
 	}
 
 	private void receiveMessagePayload(byte[] payload) {
 		receiveRawData(payload);
 	}
 
-	private void receiveRawData(byte[] message) {
+	private byte[] receiveRawData(byte[] message) {
 		try {
 			in.readFully(message);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return message;
 	}
 
 }

@@ -10,20 +10,19 @@ import cise.ufl.edu.p2p.peer.NetworkInfo;
 public class LoadPeerList {
 
 	private static HashMap<String, NetworkInfo> peerList = new HashMap<>();
-
 	static {
 		int id = 1;
 		try {
 			Scanner sc = new Scanner(new File(Constants.PEER_PROPERTIES_CONFIG_PATH));
 			while (sc.hasNextLine()) {
 				String str[] = sc.nextLine().split(" ");
-				NetworkInfo peer = new NetworkInfo();
-				peer.setNumber(id++);
-				peer.setPeerId(str[0]);
-				peer.setHostName(str[1]);
-				peer.setPort(Integer.parseInt(str[2]));
-				peer.setHasSharedFile(str[3].equals("1") ? true : false);
-				peerList.put(str[0], peer);
+				NetworkInfo network = new NetworkInfo();
+				network.setNumber(id++);
+				network.setPeerId(str[0]);
+				network.setHostName(str[1]);
+				network.setPort(Integer.parseInt(str[2]));
+				network.setHasSharedFile(str[3].equals("1") ? true : false);
+				peerList.put(str[0], network);
 			}
 			sc.close();
 		} catch (IOException e) {
@@ -38,4 +37,9 @@ public class LoadPeerList {
 	public static HashMap<String, NetworkInfo> getPeerList() {
 		return peerList;
 	}
+
+	public static int numberOfPeers() {
+		return peerList.size();
+	}
+
 }

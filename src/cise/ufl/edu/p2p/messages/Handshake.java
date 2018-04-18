@@ -1,15 +1,13 @@
 package cise.ufl.edu.p2p.messages;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-
 public class Handshake {
 	private static final String HANDSHAKE_HEADER = "P2PFILESHARINGPROJ0000000000";
 	private static String message = "";
-	
+
 	public static String getRemotePeerId(byte[] b) {
 		String id = "";
 		int to = b.length;
@@ -18,13 +16,16 @@ public class Handshake {
 		String str = new String(bytes, StandardCharsets.UTF_8);
 		return str;
 	}
-	
+
 	private static void init(String id) {
 		message += HANDSHAKE_HEADER + id;
 	}
 
-	public static String getMessage()  {
-		return message;
+	public static byte[] getMessage() {
+		byte[] handshake = new byte[32];
+		ByteBuffer bb = ByteBuffer.wrap(message.getBytes());
+		bb.get(handshake);
+		return handshake;
 	}
 
 	public static void setId(String id) {

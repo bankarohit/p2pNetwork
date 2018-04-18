@@ -17,10 +17,6 @@ public class FileHandler {
 		return file.get(index);
 	}
 
-	public static synchronized int getNextMissingPiece() {
-		return filePieces.nextClearBit(0);
-	}
-
 	public static synchronized void receivedPiece(int index) {
 		filePieces.set(index);
 	}

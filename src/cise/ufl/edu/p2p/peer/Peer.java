@@ -26,7 +26,6 @@ public class Peer {
 	public boolean hasFile() {
 		return network.hasSharedFile();
 	}
-
 	// TODO: Optimize by maintaining index upto which all files have been received
 
 	public NetworkInfo getNetwork() {

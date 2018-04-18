@@ -11,7 +11,7 @@ public abstract class Message {
 	protected byte[] payload;
 
 	public static enum Type {
-		CHOKE, UNCHOKE, INTERESTED, NOTINTERESTED, HAVE, BITFIELD, REQUEST, PIECE;
+		CHOKE, UNCHOKE, INTERESTED, NOTINTERESTED, HAVE, BITFIELD, REQUEST, PIECE, HANDSHAKE;
 	}
 
 	abstract protected byte[] getMessageLength();

@@ -3,11 +3,10 @@ package cise.ufl.edu.p2p.messages;
 import java.nio.ByteBuffer;
 
 import cise.ufl.edu.p2p.messages.Message.Type;
-import cise.ufl.edu.p2p.peer.Peer;
+import cise.ufl.edu.p2p.peer.FileHandler;
 
 public class MessageManager {
 	private static MessageManager messageManager = new MessageManager();
-	private Peer host = Peer.getInstance();
 
 	private MessageManager() {
 
@@ -58,16 +57,15 @@ public class MessageManager {
 			bytebuffer.putInt(0, 5);
 			break;
 		case BITFIELD:
-			if (host.hasFile()) {
-				BitField bitfield = BitField.getInstance();
-				messageLength = bitfield.getMessageLength();
-				return messageLength;
-			} else
-				return null;
+			BitField bitfield = BitField.getInstance();
+			messageLength = bitfield.getMessageLength();
 		case REQUEST:
 			bytebuffer.putInt(0, 5);
 			break;
 		case PIECE:
+			int pieceIndex = data.getInt();
+			int payloadLength = 4 + FileHandler.getPiece(pieceIndex).length + 1;
+			bytebuffer.putInt(0, payloadLength);
 			break;
 		}
 		bytebuffer.get(messageLength, 0, 4);
@@ -97,6 +95,16 @@ public class MessageManager {
 			data.get(payload, 1, 4);
 			break;
 		case PIECE:
+			int pieceIndex = data.getInt();
+			byte[] piece = FileHandler.getPiece(pieceIndex);
+			int pieceSize = piece.length;
+			int totalLength = 1 + pieceSize + 4;
+			payload = new byte[totalLength];
+			payload[0] = 7;
+			data = ByteBuffer.allocate(4).putInt(totalLength);
+			data.get(payload, 1, 4);
+			data = ByteBuffer.wrap(piece);
+			data.get(payload, 5, pieceSize);
 			break;
 		}
 		return payload;

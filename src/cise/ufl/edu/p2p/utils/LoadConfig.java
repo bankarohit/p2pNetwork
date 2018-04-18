@@ -13,7 +13,6 @@ public class LoadConfig {
 	}
 
 	private void loadProperties() {
-
 		// TODO: Implement read locking scenario that doesn't cause an issue if
 		// multiple peers try to read from the same file
 		Properties properties = new Properties();
@@ -25,16 +24,14 @@ public class LoadConfig {
 		}
 
 		CommonProperties.setFileName(properties.get(Constants.CPROP_FILENAME).toString());
-		CommonProperties.setFileSize(
-				Long.parseLong(properties.get(Constants.CPROP_FILESIZE).toString()));
-		CommonProperties.setNumberOfPreferredNeighbors(Integer.parseInt(
-				properties.get(Constants.CPROP_NUMBER_OF_PREFERRED_NEIGHBORS).toString()));
-		CommonProperties.setOptimisticUnchokingInterval(Integer.parseInt(
-				properties.get(Constants.CPROP_OPTIMISTIC_UNCHOKING_INTERVAL).toString()));
-		CommonProperties.setPieceSize(Integer
-				.parseInt(properties.getProperty(Constants.CPROP_PIECESIZE).toString()));
-		CommonProperties.setUnchokingInterval(Integer.parseInt(
-				properties.getProperty(Constants.CPROP_UNCHOKING_INTERVAL).toString()));
+		CommonProperties.setFileSize(Long.parseLong(properties.get(Constants.CPROP_FILESIZE).toString()));
+		CommonProperties.setNumberOfPreferredNeighbors(
+				Integer.parseInt(properties.get(Constants.CPROP_NUMBER_OF_PREFERRED_NEIGHBORS).toString()));
+		CommonProperties.setOptimisticUnchokingInterval(
+				Integer.parseInt(properties.get(Constants.CPROP_OPTIMISTIC_UNCHOKING_INTERVAL).toString()));
+		CommonProperties.setPieceSize(Integer.parseInt(properties.getProperty(Constants.CPROP_PIECESIZE).toString()));
+		CommonProperties.setUnchokingInterval(
+				Integer.parseInt(properties.getProperty(Constants.CPROP_UNCHOKING_INTERVAL).toString()));
 		CommonProperties.calculateNumberOfPieces();
 
 	}

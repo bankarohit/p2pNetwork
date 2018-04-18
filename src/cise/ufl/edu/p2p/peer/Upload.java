@@ -1,20 +1,21 @@
 package cise.ufl.edu.p2p.peer;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
-
-import cise.ufl.edu.p2p.messages.Handshake;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Upload implements Runnable {
 	private Socket socket;
-	private ObjectOutputStream out;
+	private DataOutputStream out;
 	private SharedData sharedData;
+	protected LinkedBlockingQueue<byte[]> lengthQueue;
+	protected LinkedBlockingQueue<byte[]> payloadQueue;
+	private boolean isAlive;
 
 	// client thread initialization
 	public Upload(Socket socket, String id, SharedData data) {
 		init(socket, data);
-		sharedData.setUploadHandshake(true);
 	}
 
 	// server thread initialization
@@ -23,10 +24,13 @@ public class Upload implements Runnable {
 	}
 
 	private void init(Socket clientSocket, SharedData data) {
-		socket = clientSocket;
+		payloadQueue = new LinkedBlockingQueue<>();
+		lengthQueue = new LinkedBlockingQueue<>();
+		isAlive = true;
+		this.socket = clientSocket;
 		sharedData = data;
 		try {
-			out = new ObjectOutputStream(socket.getOutputStream());
+			out = new DataOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -35,48 +39,60 @@ public class Upload implements Runnable {
 
 	@Override
 	public void run() {
-		synchronized (sharedData) {
-			while (!sharedData.getUploadHandshake()) {
+		while (isAlive) {
+			synchronized (lengthQueue) {
 				try {
-					sharedData.wait();
+					lengthQueue.wait();
+					byte[] messageLength = lengthQueue.poll();
+					sendRawData(messageLength);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			synchronized (payloadQueue) {
+				try {
+					if (payloadQueue.size() <= 0) {
+						payloadQueue.wait();
+					}
+					byte[] payload = payloadQueue.poll();
+					sendRawData(payload);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
 		}
-		sendHandshakeMessage();
-	}
-
-	private void sendHandshakeMessage() {
-		String handshakeMessage = Handshake.getMessage();
-		synchronized (sharedData) {
-			try {
-				System.out.println("Sending message: " + handshakeMessage);
-				out.writeBytes(handshakeMessage);
-				out.flush();
-			} catch (IOException e) {
-				System.out.println("Could not send handshake message. Retrying..");
-				e.printStackTrace();
-			}
-			sharedData.setDownloadHandshake(true);
-			sharedData.notify();
-		}
-	}
-
-	public void sendMessage(byte[] messageLength, byte[] payload) {
-		if (messageLength != null) {
-			sendRawData(messageLength);
-			sendRawData(payload);
-		}
 	}
 
 	private void sendRawData(byte[] message) {
+		// try {
+		// System.out.println("Sent message: " + new String(message, "UTF-8"));
+		// } catch (UnsupportedEncodingException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
 		try {
 			out.write(message);
 			out.flush();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 	}
 
+	public void addMessageLength(byte[] length) {
+		lengthQueue.offer(length);
+	}
+
+	public void addMessagePayload(byte[] payload) {
+		payloadQueue.offer(payload);
+	}
+
+	protected void choke() {
+		try {
+			Thread.sleep(CommonProperties.getUnchokingInterval() * 1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
