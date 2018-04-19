@@ -23,6 +23,7 @@ public class Peer {
 		return host;
 	}
 
+	// TODO: Use filePieces of filehandler instead of network
 	public boolean hasFile() {
 		return network.hasSharedFile();
 	}

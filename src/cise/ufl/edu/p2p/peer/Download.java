@@ -43,7 +43,7 @@ public class Download implements Runnable {
 	public void run() {
 		byte[] handshake = new byte[32];
 		receiveRawData(handshake);
-		sharedData.processPayload(null);
+		sharedData.processPayload(handshake);
 	}
 
 	protected void receiveMessage() {

@@ -101,6 +101,8 @@ public class SharedData {
 		if (!getDownloadHandshake()) {
 			messageType = Message.Type.HANDSHAKE;
 			setDownloadHandshake();
+			remotePeerId = Handshake.getId(payload);
+			conn.setPeerId(remotePeerId);
 		} else {
 			messageType = messageManager.getType(payload[0]);
 			if (payload.length > 1) {
@@ -123,6 +125,7 @@ public class SharedData {
 			// conn.choke();
 			break;
 		case UNCHOKE:
+			System.out.println("Received unchoke");
 			responseMessageType = Message.Type.REQUEST;
 			break;
 		case INTERESTED:
@@ -143,7 +146,6 @@ public class SharedData {
 			break;
 		case REQUEST:
 			responseMessageType = Message.Type.PIECE;
-
 			break;
 		case PIECE:
 			// conn.tellAllNeighbors(content);
@@ -167,7 +169,7 @@ public class SharedData {
 		case HANDSHAKE:
 			byte[] handshake = Handshake.getMessage();
 			conn.sendMessage(Arrays.copyOfRange(handshake, 0, 4), Arrays.copyOfRange(handshake, 4, 32));
-			if (downloadHandshake) {
+			if (getDownloadHandshake()) {
 				sendMessage(Message.Type.BITFIELD, null);
 				conn.receiveMessage();
 			}
@@ -182,6 +184,7 @@ public class SharedData {
 		case REQUEST:
 			int requestPiece = getRequestPieceIndex();
 			data = ByteBuffer.allocate(4).putInt(requestPiece);
+			System.out.println("Sending request");
 			break;
 		case PIECE:
 			data = byteBuffer;

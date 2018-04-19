@@ -43,7 +43,7 @@ public class MessageManager {
 		return temp.getInt();
 	}
 
-	public byte[] getMessageLength(Type messageType, ByteBuffer data) {
+	public synchronized byte[] getMessageLength(Type messageType, ByteBuffer data) {
 		byte[] messageLength = new byte[4];
 		ByteBuffer bytebuffer = ByteBuffer.allocate(4);
 		switch (messageType) {
@@ -72,7 +72,7 @@ public class MessageManager {
 		return messageLength;
 	}
 
-	public byte[] getPayload(Type messageType, ByteBuffer data) {
+	public synchronized byte[] getPayload(Type messageType, ByteBuffer data) {
 		byte[] payload = new byte[5];
 
 		switch (messageType) {

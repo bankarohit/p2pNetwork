@@ -1,5 +1,6 @@
 package cise.ufl.edu.p2p.peer;
 
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -68,7 +69,7 @@ public class ConnectionManager {
 	 * Add to preferred connections if total connections < n - 1 Remove from not
 	 * interested if present. Add to interested.
 	 */
-	public void addInterestedConnection(String peerId, Connection connection) {
+	public synchronized void addInterestedConnection(String peerId, Connection connection) {
 		if (totalConnections < n - 1) {
 			totalConnections++;
 			interested.put(peerId, connection);
@@ -89,7 +90,7 @@ public class ConnectionManager {
 	 * If totalConnections < n - 1, increment totalConnections. Remove from
 	 * interested, if present. Add to not interested.
 	 */
-	public void addNotInterestedConnection(String peerId, Connection connection) {
+	public synchronized void addNotInterestedConnection(String peerId, Connection connection) {
 		if (totalConnections < n - 1) {
 			totalConnections++;
 			notInterested.add(connection);
@@ -113,6 +114,15 @@ public class ConnectionManager {
 		byte[] messagePayload = messageManager.getPayload(Message.Type.UNCHOKE, null);
 		for (int i = 1; i <= k + 1; i++) {
 			String peerId = optimisticallyUnchokeNeighbor();
+			System.out.println("Unchoking " + peerId);
+			try {
+				System.out.println(new String(messageLength, "UTF-8"));
+				System.out.println(new String(messagePayload, "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 			if (peerId == null) {
 				break;
 			}
@@ -127,7 +137,9 @@ public class ConnectionManager {
 		if (interestedPeerIds.size() <= 0) {
 			return null;
 		}
+		System.out.println("Interested peer size:" + interestedPeerIds.size());
 		int peerId = (int) (Math.random() * interestedPeerIds.size());
+		System.out.println("Removing peer with id" + peerId);
 		return interestedPeerIds.remove(peerId);
 	}
 

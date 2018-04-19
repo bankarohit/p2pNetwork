@@ -20,7 +20,7 @@ public class BitField extends Message {
 		bytebuffer.get(payload, 1, content.length);
 	}
 
-	public static BitField getInstance() {
+	public synchronized static BitField getInstance() {
 		return bitfield;
 	}
 

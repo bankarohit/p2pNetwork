@@ -91,4 +91,9 @@ public class Connection {
 		download.receiveMessage();
 
 	}
+
+	public void setPeerId(String value) {
+		remotePeerId = value;
+
+	}
 }
