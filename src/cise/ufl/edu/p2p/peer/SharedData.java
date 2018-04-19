@@ -114,7 +114,9 @@ public class SharedData {
 				responseMessageType = Message.Type.HANDSHAKE;
 				setUploadHandshake();
 			} else {
-				conn.receiveMessage();
+				// System.out.println("Waiting for some message after handshake");
+				// conn.receiveMessage();
+				responseMessageType = Message.Type.BITFIELD;
 			}
 			break;
 		case CHOKE:

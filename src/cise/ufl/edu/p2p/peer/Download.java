@@ -65,13 +65,12 @@ public class Download implements Runnable {
 		receiveRawData(payload);
 	}
 
-	private byte[] receiveRawData(byte[] message) {
+	private void receiveRawData(byte[] message) {
 		try {
 			in.readFully(message);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return message;
 	}
 
 }

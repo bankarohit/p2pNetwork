@@ -2,6 +2,7 @@ package cise.ufl.edu.p2p.peer;
 
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.PriorityQueue;
@@ -15,6 +16,7 @@ public class ConnectionManager {
 	private static ConnectionManager connectionManager = new ConnectionManager();
 	private HashMap<String, Connection> interested; // interested but choked
 	private HashSet<Connection> notInterested;
+	private ArrayList<String> interestedPeerIds;
 	private PriorityQueue<Connection> preferredNeighbors;
 	private int k = CommonProperties.getNumberOfPreferredNeighbors();
 	private int m = CommonProperties.getOptimisticUnchokingInterval();
@@ -29,6 +31,7 @@ public class ConnectionManager {
 		notInterested = new HashSet<>();
 		preferredNeighbors = new PriorityQueue<>(k + 1, (a, b) -> (int) a.getSpeed() - (int) b.getSpeed());
 		requestedPieces = new HashSet<>();
+		interestedPeerIds = new ArrayList<>();
 	}
 
 	private void monitor() {
@@ -69,6 +72,7 @@ public class ConnectionManager {
 		if (totalConnections < n - 1) {
 			totalConnections++;
 			interested.put(peerId, connection);
+			interestedPeerIds.add(peerId);
 			System.out.println(totalConnections + " " + (n - 1));
 			if (totalConnections == n - 1) {
 				startTransfer();
@@ -103,16 +107,28 @@ public class ConnectionManager {
 	 * timers
 	 */
 	private void startTransfer() {
+		System.out.println("Transfer started");
 		MessageManager messageManager = MessageManager.getInstance();
 		byte[] messageLength = messageManager.getMessageLength(Message.Type.UNCHOKE, null);
 		byte[] messagePayload = messageManager.getPayload(Message.Type.UNCHOKE, null);
-		for (int i = 1; i <= k + 1 && interested.size() > 0; i++) {
-			int peer = (int) (interested.size() * Math.random());
-			Connection conn = interested.remove(peer);
+		for (int i = 1; i <= k + 1; i++) {
+			String peerId = optimisticallyUnchokeNeighbor();
+			if (peerId == null) {
+				break;
+			}
+			Connection conn = interested.remove(peerId);
 			conn.sendMessage(messageLength, messagePayload);
 			preferredNeighbors.add(conn);
 		}
 		monitor();
+	}
+
+	public String optimisticallyUnchokeNeighbor() {
+		if (interestedPeerIds.size() <= 0) {
+			return null;
+		}
+		int peerId = (int) (Math.random() * interestedPeerIds.size());
+		return interestedPeerIds.remove(peerId);
 	}
 
 	public boolean isRequested(int pieceIndex) {
