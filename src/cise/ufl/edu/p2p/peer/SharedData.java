@@ -13,8 +13,8 @@ public class SharedData {
 	private BitSet peerBitset;
 	private String remotePeerId;
 	private Connection conn;
-	private boolean uploadHandshake;
-	private boolean downloadHandshake;
+	private volatile boolean uploadHandshake;
+	private volatile boolean downloadHandshake;
 	private MessageManager messageManager = MessageManager.getInstance();
 	private Peer host = Peer.getInstance();
 
@@ -22,12 +22,20 @@ public class SharedData {
 		conn = connection;
 	}
 
-	public void setUploadHandshake() {
+	public synchronized void setUploadClientHandshake() {
 		uploadHandshake = true;
 		sendMessage(Message.Type.HANDSHAKE, null);
 	}
 
-	public void setDownloadHandshake() {
+	public synchronized void setUploadHandshake() {
+		uploadHandshake = true;
+	}
+
+	public synchronized boolean getUploadHandshake() {
+		return uploadHandshake;
+	}
+
+	public synchronized void setDownloadHandshake() {
 		downloadHandshake = true;
 	}
 
@@ -90,9 +98,9 @@ public class SharedData {
 		Message.Type messageType = null;
 		ByteBuffer content = null;
 		Message.Type responseMessageType = null;
-		if (!downloadHandshake) {
+		if (!getDownloadHandshake()) {
 			messageType = Message.Type.HANDSHAKE;
-			downloadHandshake = true;
+			setDownloadHandshake();
 		} else {
 			messageType = messageManager.getType(payload[0]);
 			if (payload.length > 1) {
@@ -102,9 +110,9 @@ public class SharedData {
 		System.out.println("Received Message: " + messageType);
 		switch (messageType) {
 		case HANDSHAKE:
-			if (!uploadHandshake) {
+			if (!getUploadHandshake()) {
 				responseMessageType = Message.Type.HANDSHAKE;
-				uploadHandshake = true;
+				setUploadHandshake();
 			} else {
 				conn.receiveMessage();
 			}
@@ -159,6 +167,7 @@ public class SharedData {
 			conn.sendMessage(Arrays.copyOfRange(handshake, 0, 4), Arrays.copyOfRange(handshake, 4, 32));
 			if (downloadHandshake) {
 				sendMessage(Message.Type.BITFIELD, null);
+				conn.receiveMessage();
 			}
 			return;
 		case BITFIELD:
@@ -200,7 +209,7 @@ public class SharedData {
 		return messageManager.getLength(messageLength);
 	}
 
-	public boolean getDownloadHandshake() {
+	public synchronized boolean getDownloadHandshake() {
 		return downloadHandshake;
 	}
 

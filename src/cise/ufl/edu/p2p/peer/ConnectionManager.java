@@ -69,6 +69,7 @@ public class ConnectionManager {
 		if (totalConnections < n - 1) {
 			totalConnections++;
 			interested.put(peerId, connection);
+			System.out.println(totalConnections + " " + (n - 1));
 			if (totalConnections == n - 1) {
 				startTransfer();
 			}

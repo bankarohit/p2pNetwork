@@ -40,7 +40,7 @@ public class Connection {
 		upload = new Upload(peerSocket, peerId, sharedData);
 		download = new Download(peerSocket, peerId, sharedData);
 		createThreads(upload, download);
-		sharedData.setUploadHandshake();
+		sharedData.setUploadClientHandshake();
 	}
 
 	public void createThreads(Upload upload, Download download) {
