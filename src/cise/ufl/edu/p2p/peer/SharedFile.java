@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,9 +19,12 @@ public class SharedFile {
 	public static void splitFile() {
 		file = new ConcurrentHashMap<Integer, byte[]>();
 		filePieces = new BitSet(CommonProperties.getNumberOfPieces());
-		File filePtr = new File(Constants.COMMON_PROPERTIES_CONFIG_PATH);
+		File filePtr = new File(Constants.COMMON_PROPERTIES_FILE_PATH);
 		FileInputStream fis = null;
 		DataInputStream dis = null;
+		int fileSize = (int) CommonProperties.getFileSize();
+		int numberOfPieces = CommonProperties.getNumberOfPieces();
+		System.out.println("Filesize: " + fileSize);
 		try {
 			fis = new FileInputStream(filePtr);
 			dis = new DataInputStream(fis);
@@ -28,10 +33,11 @@ public class SharedFile {
 			// TODO: will fileInputStream always read pieceSize amount of data?
 			try {
 				for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
-					pieceSize = (int) (i == CommonProperties.getNumberOfPieces() - 1 ? CommonProperties.getPieceSize()
-							: CommonProperties.getFileSize() % CommonProperties.getPieceSize());
+					pieceSize = i != numberOfPieces - 1 ? CommonProperties.getPieceSize()
+							: fileSize % CommonProperties.getPieceSize();
 					byte[] piece = new byte[pieceSize];
-					dis.read(piece);
+					// System.out.println("Reading piece of size: " + pieceSize);
+					dis.readFully(piece);
 					file.put(pieceIndex, piece);
 					filePieces.set(pieceIndex++);
 				}
@@ -53,9 +59,10 @@ public class SharedFile {
 				System.out.println("Error while closing fileinputstream after reading file");
 			}
 		}
-		System.out.println("SharedFile.splitFile() - Filepieces: " + filePieces.size());
-		System.out.println("SharedFile.splitFile() - Filepieces cardinality: " + filePieces.length());
-		System.out.println("SharedFile.splitFile() - Filepieces 0 index: " + filePieces.get(0));
+		// System.out.println("SharedFile.splitFile() - Filepieces cardinality: " +
+		// filePieces.length());
+		// System.out.println("SharedFile.splitFile() - Filepieces 0 index: " +
+		// filePieces.get(0));
 	}
 
 	public static byte[] getPiece(int index) {
@@ -70,8 +77,12 @@ public class SharedFile {
 		filePieces.flip(0, filePieces.size());
 	}
 
-	public static synchronized void receivedPiece(int index) {
-		filePieces.set(index);
+	public static synchronized void setPiece(byte[] payload) {
+		int pieceIndex = ByteBuffer.wrap(payload, 0, 4).getInt();
+		System.out.println("Setting pieceIndex: " + pieceIndex);
+		filePieces.set(pieceIndex);
+		file.put(pieceIndex, Arrays.copyOfRange(payload, 4, payload.length));
+
 	}
 
 	public static synchronized boolean isPieceAvailable(int index) {

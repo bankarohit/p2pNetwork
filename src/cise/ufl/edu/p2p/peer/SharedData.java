@@ -140,12 +140,14 @@ public class SharedData {
 			break;
 		case REQUEST:
 			responseMessageType = Message.Type.PIECE;
-			content = payload;
-			System.out.println("Received request for piece" + ByteBuffer.wrap(content).getInt());
+			content = new byte[4];
+			System.arraycopy(payload, 1, content, 0, 4);
+			System.out.println("Received request for piece " + ByteBuffer.wrap(content).getInt());
 			break;
 		case PIECE:
-			// conn.tellAllNeighbors(content);
-			responseMessageType = getInterestedNotInterested();
+			System.out.println("Received pieceindex & setting: " + ByteBuffer.wrap(payload, 1, 4).getInt());
+			SharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
+			responseMessageType = Message.Type.REQUEST;
 			break;
 		default:
 			System.out.println("Received hanshake in error");
@@ -181,6 +183,7 @@ public class SharedData {
 			System.out.println("Requested piece: " + pieceIndex);
 			break;
 		case PIECE:
+			pieceIndex = ByteBuffer.wrap(buffer).getInt();
 			break;
 		case HAVE:
 			break;

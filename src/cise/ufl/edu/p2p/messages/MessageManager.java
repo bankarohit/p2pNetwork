@@ -57,6 +57,7 @@ public class MessageManager {
 			return bitfield.getMessageLength();
 		case PIECE:
 			int payloadLength = 5 + SharedFile.getPiece(pieceIndex).length;
+			System.out.println("Total piece payload length: " + payloadLength);
 			return payloadLength;
 		}
 		return -1;
@@ -86,16 +87,14 @@ public class MessageManager {
 			System.arraycopy(index, 0, payload, 1, 4);
 			break;
 		case PIECE:
-			// int pieceIndex = data.getInt();
-			// byte[] piece = FileHandler.getPiece(pieceIndex);
-			// int pieceSize = piece.length;
-			// int totalLength = 1 + pieceSize + 4;
-			// payload = new byte[totalLength];
-			// payload[0] = 7;
-			// data = ByteBuffer.allocate(4).putInt(totalLength);
-			// data.get(payload, 1, 4);
-			// data = ByteBuffer.wrap(piece);
-			// data.get(payload, 5, pieceSize);
+			byte[] piece = SharedFile.getPiece(pieceIndex);
+			int pieceSize = piece.length;
+			int totalLength = 5 + pieceSize;
+			payload = new byte[totalLength];
+			payload[0] = 7;
+			byte[] data = ByteBuffer.allocate(4).putInt(totalLength).array();
+			System.arraycopy(data, 0, payload, 1, 4);
+			System.arraycopy(piece, 0, payload, 5, pieceSize);
 			break;
 		}
 		return payload;
