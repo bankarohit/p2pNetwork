@@ -51,7 +51,6 @@ public class Download implements Runnable {
 		System.out.println("Receive started");
 		int messageLength = Integer.MIN_VALUE;
 		messageLength = receiveMessageLength();
-		System.out.println("\nMessage Length after reading: " + messageLength);
 		byte[] payload = new byte[messageLength];
 		receiveMessagePayload(payload);
 		sharedData.processPayload(payload);

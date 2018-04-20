@@ -2,7 +2,6 @@ package cise.ufl.edu.p2p.peer;
 
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -56,10 +55,10 @@ public class ConnectionManager {
 		return connectionManager;
 	}
 
-	protected void tellAllNeighbors(ByteBuffer pieceIndex) {
+	protected synchronized void tellAllNeighbors(int pieceIndex) {
 		MessageManager messageManager = MessageManager.getInstance();
 		for (Connection conn : preferredNeighbors) {
-			int messageLength = messageManager.getMessageLength(Message.Type.HAVE, null);
+			int messageLength = messageManager.getMessageLength(Message.Type.HAVE, Integer.MIN_VALUE);
 			byte[] payload = messageManager.getMessagePayload(Message.Type.HAVE, pieceIndex);
 			conn.sendMessage(messageLength, payload);
 		}
@@ -110,8 +109,8 @@ public class ConnectionManager {
 	private void startTransfer() {
 		System.out.println("Transfer started");
 		MessageManager messageManager = MessageManager.getInstance();
-		int messageLength = messageManager.getMessageLength(Message.Type.UNCHOKE, null);
-		byte[] messagePayload = messageManager.getMessagePayload(Message.Type.UNCHOKE, null);
+		int messageLength = messageManager.getMessageLength(Message.Type.UNCHOKE, Integer.MIN_VALUE);
+		byte[] messagePayload = messageManager.getMessagePayload(Message.Type.UNCHOKE, Integer.MIN_VALUE);
 		for (int i = 1; i <= k + 1; i++) {
 			String peerId = optimisticallyUnchokeNeighbor();
 			System.out.println("Unchoking " + peerId);

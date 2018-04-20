@@ -22,7 +22,6 @@ public class SharedData {
 	}
 
 	public synchronized void sendHandshake() {
-		System.out.println("In send handshake");
 		sendMessage(Message.Type.HANDSHAKE, null);
 	}
 
@@ -110,7 +109,7 @@ public class SharedData {
 
 	protected void processPayload(byte[] payload) {
 		Message.Type messageType = null;
-		ByteBuffer content = null;
+		byte[] content = null;
 		Message.Type responseMessageType = null;
 		messageType = messageManager.getType(payload[0]);
 		System.out.println("Received Message: " + messageType + " from " + remotePeerId);
@@ -131,7 +130,7 @@ public class SharedData {
 			messageType = null;
 			break;
 		case HAVE:
-			peerHasPiece(content.getInt());
+			peerHasPiece(ByteBuffer.wrap(content).getInt());
 			responseMessageType = getInterestedNotInterested();
 			break;
 		case BITFIELD:
@@ -140,6 +139,7 @@ public class SharedData {
 			break;
 		case REQUEST:
 			responseMessageType = Message.Type.PIECE;
+			content = payload;
 			break;
 		case PIECE:
 			// conn.tellAllNeighbors(content);
@@ -158,11 +158,10 @@ public class SharedData {
 	 * & payload always fixed. Call to message manager will retrieve appropriate
 	 * data
 	 */
-	private void sendMessage(Message.Type messageType, ByteBuffer byteBuffer) {
+	private void sendMessage(Message.Type messageType, byte[] buffer) {
 		int messageLength = Integer.MIN_VALUE;
 		byte[] payload = null;
-		ByteBuffer data = null;
-		System.out.println("Sending message: " + messageType);
+		int pieceIndex = Integer.MIN_VALUE;
 		switch (messageType) {
 		case HANDSHAKE:
 			byte[] handshake = Handshake.getMessage();
@@ -176,12 +175,11 @@ public class SharedData {
 			}
 			break;
 		case REQUEST:
-			int requestPiece = getRequestPieceIndex();
-			data = ByteBuffer.allocate(4).putInt(requestPiece);
-			System.out.println("Sending request");
+			// assume getRequestPieceIndex() works correctly
+			pieceIndex = getRequestPieceIndex();
+			System.out.println("Requested piece: " + pieceIndex);
 			break;
 		case PIECE:
-			data = byteBuffer;
 			break;
 		case HAVE:
 			break;
@@ -190,9 +188,8 @@ public class SharedData {
 			conn.chokeDownload();
 			break;
 		}
-		// System.out.println("Send message: " + messageType + " to " + remotePeerId);
-		messageLength = messageManager.getMessageLength(messageType, data);
-		payload = messageManager.getMessagePayload(messageType, data);
+		messageLength = messageManager.getMessageLength(messageType, pieceIndex);
+		payload = messageManager.getMessagePayload(messageType, pieceIndex);
 		System.out.println("Sending message " + messageType + " of length " + messageLength + " to " + remotePeerId);
 		conn.sendMessage(messageLength, payload);
 	}

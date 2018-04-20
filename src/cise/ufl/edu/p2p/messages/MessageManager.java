@@ -3,7 +3,7 @@ package cise.ufl.edu.p2p.messages;
 import java.nio.ByteBuffer;
 
 import cise.ufl.edu.p2p.messages.Message.Type;
-import cise.ufl.edu.p2p.peer.FileHandler;
+import cise.ufl.edu.p2p.peer.SharedFile;
 
 public class MessageManager {
 	private static MessageManager messageManager = new MessageManager();
@@ -39,11 +39,10 @@ public class MessageManager {
 	}
 
 	public synchronized int processLength(byte[] messageLength) {
-		ByteBuffer temp = ByteBuffer.wrap(messageLength);
-		return temp.getInt();
+		return ByteBuffer.wrap(messageLength).getInt();
 	}
 
-	public synchronized int getMessageLength(Type messageType, ByteBuffer data) {
+	public synchronized int getMessageLength(Type messageType, int pieceIndex) {
 		switch (messageType) {
 		case CHOKE:
 		case UNCHOKE:
@@ -57,14 +56,13 @@ public class MessageManager {
 			BitField bitfield = BitField.getInstance();
 			return bitfield.getMessageLength();
 		case PIECE:
-			int pieceIndex = data.getInt();
-			int payloadLength = 4 + FileHandler.getPiece(pieceIndex).length + 1;
+			int payloadLength = 5 + SharedFile.getPiece(pieceIndex).length;
 			return payloadLength;
 		}
 		return -1;
 	}
 
-	public synchronized byte[] getMessagePayload(Type messageType, ByteBuffer data) {
+	public synchronized byte[] getMessagePayload(Type messageType, int pieceIndex) {
 		byte[] payload = new byte[5];
 
 		switch (messageType) {
@@ -84,25 +82,22 @@ public class MessageManager {
 			break;
 		case REQUEST:
 			payload[0] = 6;
-			data.get(payload, 1, 4);
+			byte[] index = ByteBuffer.allocate(4).putInt(pieceIndex).array();
+			System.arraycopy(index, 0, payload, 1, 4);
 			break;
 		case PIECE:
-			int pieceIndex = data.getInt();
-			byte[] piece = FileHandler.getPiece(pieceIndex);
-			int pieceSize = piece.length;
-			int totalLength = 1 + pieceSize + 4;
-			payload = new byte[totalLength];
-			payload[0] = 7;
-			data = ByteBuffer.allocate(4).putInt(totalLength);
-			data.get(payload, 1, 4);
-			data = ByteBuffer.wrap(piece);
-			data.get(payload, 5, pieceSize);
+			// int pieceIndex = data.getInt();
+			// byte[] piece = FileHandler.getPiece(pieceIndex);
+			// int pieceSize = piece.length;
+			// int totalLength = 1 + pieceSize + 4;
+			// payload = new byte[totalLength];
+			// payload[0] = 7;
+			// data = ByteBuffer.allocate(4).putInt(totalLength);
+			// data.get(payload, 1, 4);
+			// data = ByteBuffer.wrap(piece);
+			// data.get(payload, 5, pieceSize);
 			break;
 		}
 		return payload;
-	}
-
-	public synchronized ByteBuffer getContent(byte[] payload) {
-		return ByteBuffer.wrap(payload, 1, payload.length - 1);
 	}
 }

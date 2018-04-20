@@ -66,7 +66,7 @@ public class SharedFile {
 		return filePieces.nextClearBit(0);
 	}
 
-	public static void hasFile() {
+	public static synchronized void hasFile() {
 		filePieces.flip(0, filePieces.size());
 	}
 

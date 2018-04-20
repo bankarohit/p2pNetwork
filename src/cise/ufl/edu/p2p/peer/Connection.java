@@ -1,7 +1,6 @@
 package cise.ufl.edu.p2p.peer;
 
 import java.net.Socket;
-import java.nio.ByteBuffer;
 
 public class Connection {
 	Upload upload;
@@ -63,7 +62,7 @@ public class Connection {
 		}
 	}
 
-	public void tellAllNeighbors(ByteBuffer pieceIndex) {
+	public void tellAllNeighbors(int pieceIndex) {
 		connectionManager.tellAllNeighbors(pieceIndex);
 	}
 
