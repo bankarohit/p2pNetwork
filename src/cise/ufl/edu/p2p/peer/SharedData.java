@@ -85,7 +85,7 @@ public class SharedData {
 	}
 
 	private boolean isInterested() {
-		peerBitset.andNot(FileHandler.getFilePieces());
+		peerBitset.andNot(SharedFile.getFilePieces());
 		return peerBitset.cardinality() > 0;
 	}
 
@@ -142,7 +142,6 @@ public class SharedData {
 			responseMessageType = Message.Type.PIECE;
 			content = new byte[4];
 			System.arraycopy(payload, 1, content, 0, 4);
-			System.out.println("Received request for piece " + ByteBuffer.wrap(content).getInt());
 			break;
 		case PIECE:
 			System.out.println("Received pieceindex & setting: " + ByteBuffer.wrap(payload, 1, 4).getInt());
@@ -180,10 +179,12 @@ public class SharedData {
 		case REQUEST:
 			// assume getRequestPieceIndex() works correctly
 			pieceIndex = getRequestPieceIndex();
+			conn.setRequested(pieceIndex);
 			System.out.println("Requested piece: " + pieceIndex);
 			break;
 		case PIECE:
 			pieceIndex = ByteBuffer.wrap(buffer).getInt();
+			System.out.println("Received request for piece " + pieceIndex);
 			break;
 		case HAVE:
 			break;
@@ -202,7 +203,7 @@ public class SharedData {
 		int requestPiece = 0;
 		do {
 			requestPiece = getRandomPiece();
-		} while (FileHandler.isPieceAvailable(requestPiece));
+		} while (SharedFile.isPieceAvailable(requestPiece));
 		return requestPiece;
 	}
 

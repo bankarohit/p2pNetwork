@@ -70,6 +70,10 @@ public class Connection {
 		return connectionManager.isRequested(pieceIndex);
 	}
 
+	protected void setRequested(int pieceIndex) {
+		connectionManager.setRequested(pieceIndex);
+	}
+
 	public void addInterestedConnection() {
 		connectionManager.addInterestedConnection(remotePeerId, this);
 	}

@@ -154,4 +154,9 @@ public class ConnectionManager {
 		new Connection(socket);
 	}
 
+	public synchronized void setRequested(int pieceIndex) {
+		requestedPieces.add(pieceIndex);
+
+	}
+
 }

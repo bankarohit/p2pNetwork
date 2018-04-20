@@ -16,9 +16,13 @@ public class SharedFile {
 	private static ConcurrentHashMap<Integer, byte[]> file;
 	public static BitSet filePieces;
 
-	public static void splitFile() {
+	static {
 		file = new ConcurrentHashMap<Integer, byte[]>();
 		filePieces = new BitSet(CommonProperties.getNumberOfPieces());
+	}
+
+	public static void splitFile() {
+
 		File filePtr = new File(Constants.COMMON_PROPERTIES_FILE_PATH);
 		FileInputStream fis = null;
 		DataInputStream dis = null;
