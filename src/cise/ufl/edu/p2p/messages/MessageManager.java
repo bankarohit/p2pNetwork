@@ -12,11 +12,11 @@ public class MessageManager {
 
 	}
 
-	public static MessageManager getInstance() {
+	public static synchronized MessageManager getInstance() {
 		return messageManager;
 	}
 
-	public Type getType(byte type) {
+	public synchronized Type getType(byte type) {
 		switch (type) {
 		case 0:
 			return Type.CHOKE;
@@ -110,7 +110,7 @@ public class MessageManager {
 		return payload;
 	}
 
-	public ByteBuffer getContent(byte[] payload) {
+	public synchronized ByteBuffer getContent(byte[] payload) {
 		return ByteBuffer.wrap(payload, 1, payload.length - 1);
 	}
 }

@@ -37,7 +37,7 @@ public class Handshake {
 		return recvdMessage.indexOf(peerId) != -1 && recvdMessage.contains(HANDSHAKE_HEADER);
 	}
 
-	public static String getId(byte[] message) {
+	public static synchronized String getId(byte[] message) {
 		byte[] remotePeerId = Arrays.copyOfRange(message, message.length - 4, message.length);
 		return new String(remotePeerId);
 	}

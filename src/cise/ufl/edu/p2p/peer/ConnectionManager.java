@@ -52,7 +52,7 @@ public class ConnectionManager {
 
 	}
 
-	public static ConnectionManager getInstance() {
+	public static synchronized ConnectionManager getInstance() {
 		return connectionManager;
 	}
 
