@@ -25,12 +25,12 @@ public class BitField extends Message {
 	}
 
 	@Override
-	protected byte[] getMessageLength() {
+	protected synchronized byte[] getMessageLength() {
 		return messageLength;
 	}
 
 	@Override
-	protected byte[] getPayload() {
+	protected synchronized byte[] getPayload() {
 		return payload;
 	}
 

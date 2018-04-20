@@ -60,7 +60,7 @@ public class ConnectionManager {
 		MessageManager messageManager = MessageManager.getInstance();
 		for (Connection conn : preferredNeighbors) {
 			byte[] messageLength = messageManager.getMessageLength(Message.Type.HAVE, null);
-			byte[] payload = messageManager.getPayload(Message.Type.HAVE, pieceIndex);
+			byte[] payload = messageManager.getMessagePayload(Message.Type.HAVE, pieceIndex);
 			conn.sendMessage(messageLength, payload);
 		}
 	}
@@ -111,7 +111,7 @@ public class ConnectionManager {
 		System.out.println("Transfer started");
 		MessageManager messageManager = MessageManager.getInstance();
 		byte[] messageLength = messageManager.getMessageLength(Message.Type.UNCHOKE, null);
-		byte[] messagePayload = messageManager.getPayload(Message.Type.UNCHOKE, null);
+		byte[] messagePayload = messageManager.getMessagePayload(Message.Type.UNCHOKE, null);
 		for (int i = 1; i <= k + 1; i++) {
 			String peerId = optimisticallyUnchokeNeighbor();
 			System.out.println("Unchoking " + peerId);

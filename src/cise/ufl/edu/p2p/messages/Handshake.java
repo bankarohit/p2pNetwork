@@ -8,7 +8,7 @@ public class Handshake {
 	private static final String HANDSHAKE_HEADER = "P2PFILESHARINGPROJ0000000000";
 	private static String message = "";
 
-	public static String getRemotePeerId(byte[] b) {
+	public static synchronized String getRemotePeerId(byte[] b) {
 		String id = "";
 		int to = b.length;
 		int from = to - 4;
@@ -17,22 +17,22 @@ public class Handshake {
 		return str;
 	}
 
-	private static void init(String id) {
+	private static synchronized void init(String id) {
 		message += HANDSHAKE_HEADER + id;
 	}
 
-	public static byte[] getMessage() {
+	public static synchronized byte[] getMessage() {
 		byte[] handshake = new byte[32];
 		ByteBuffer bb = ByteBuffer.wrap(message.getBytes());
 		bb.get(handshake);
 		return handshake;
 	}
 
-	public static void setId(String id) {
+	public static synchronized void setId(String id) {
 		init(id);
 	}
 
-	public static boolean verify(byte[] message, String peerId) {
+	public static synchronized boolean verify(byte[] message, String peerId) {
 		String recvdMessage = new String(message);
 		return recvdMessage.indexOf(peerId) != -1 && recvdMessage.contains(HANDSHAKE_HEADER);
 	}

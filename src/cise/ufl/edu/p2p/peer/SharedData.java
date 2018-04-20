@@ -109,7 +109,7 @@ public class SharedData {
 				content = messageManager.getContent(payload);
 			}
 		}
-		System.out.println("Received Message: " + messageType);
+		System.out.println("Received Message: " + messageType + " from " + remotePeerId);
 		switch (messageType) {
 		case HANDSHAKE:
 			if (!getUploadHandshake()) {
@@ -196,9 +196,11 @@ public class SharedData {
 			conn.chokeDownload();
 			break;
 		}
-		System.out.println("Send message: " + messageType);
+		// System.out.println("Send message: " + messageType + " to " + remotePeerId);
 		messageLength = messageManager.getMessageLength(messageType, data);
-		payload = messageManager.getPayload(messageType, data);
+		payload = messageManager.getMessagePayload(messageType, data);
+		System.out.println("Send messagelength: " + messageManager.processLength(messageLength) + " to " + remotePeerId);
+		System.out.println("Send messagetype: " + payload[0] + " to " + remotePeerId);
 		conn.sendMessage(messageLength, payload);
 	}
 
@@ -211,7 +213,7 @@ public class SharedData {
 	}
 
 	protected int processMessageLength(byte[] messageLength) {
-		return messageManager.getLength(messageLength);
+		return messageManager.processLength(messageLength);
 	}
 
 	public synchronized boolean getDownloadHandshake() {
