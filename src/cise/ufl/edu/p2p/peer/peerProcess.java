@@ -26,7 +26,7 @@ public class peerProcess {
 		new LoadPeerList();
 		Handshake.setId(peerId);
 		if (LoadPeerList.getPeer(peerId).hasSharedFile()) {
-			FileHandler.splitFile();
+			SharedFile.splitFile();
 		}
 	}
 

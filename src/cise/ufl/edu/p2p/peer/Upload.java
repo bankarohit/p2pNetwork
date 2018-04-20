@@ -9,7 +9,7 @@ public class Upload implements Runnable {
 	private Socket socket;
 	private DataOutputStream out;
 	private SharedData sharedData;
-	protected LinkedBlockingQueue<byte[]> lengthQueue;
+	protected LinkedBlockingQueue<Integer> lengthQueue;
 	protected LinkedBlockingQueue<byte[]> payloadQueue;
 	private boolean isAlive;
 
@@ -43,9 +43,10 @@ public class Upload implements Runnable {
 			synchronized (lengthQueue) {
 				try {
 					lengthQueue.wait();
-					byte[] messageLength = lengthQueue.poll();
-					sendRawData(messageLength);
-				} catch (InterruptedException e) {
+					int messageLength = lengthQueue.poll();
+					out.writeInt(messageLength);
+					out.flush();
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -79,7 +80,7 @@ public class Upload implements Runnable {
 
 	}
 
-	public void addMessageLength(byte[] length) {
+	public void addMessageLength(int length) {
 		lengthQueue.offer(length);
 	}
 

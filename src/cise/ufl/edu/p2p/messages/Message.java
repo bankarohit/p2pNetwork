@@ -14,7 +14,7 @@ public abstract class Message {
 		CHOKE, UNCHOKE, INTERESTED, NOTINTERESTED, HAVE, BITFIELD, REQUEST, PIECE, HANDSHAKE;
 	}
 
-	abstract protected byte[] getMessageLength();
+	abstract protected int getMessageLength();
 
 	abstract protected byte[] getPayload();
 

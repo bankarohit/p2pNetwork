@@ -59,7 +59,7 @@ public class ConnectionManager {
 	protected void tellAllNeighbors(ByteBuffer pieceIndex) {
 		MessageManager messageManager = MessageManager.getInstance();
 		for (Connection conn : preferredNeighbors) {
-			byte[] messageLength = messageManager.getMessageLength(Message.Type.HAVE, null);
+			int messageLength = messageManager.getMessageLength(Message.Type.HAVE, null);
 			byte[] payload = messageManager.getMessagePayload(Message.Type.HAVE, pieceIndex);
 			conn.sendMessage(messageLength, payload);
 		}
@@ -110,13 +110,13 @@ public class ConnectionManager {
 	private void startTransfer() {
 		System.out.println("Transfer started");
 		MessageManager messageManager = MessageManager.getInstance();
-		byte[] messageLength = messageManager.getMessageLength(Message.Type.UNCHOKE, null);
+		int messageLength = messageManager.getMessageLength(Message.Type.UNCHOKE, null);
 		byte[] messagePayload = messageManager.getMessagePayload(Message.Type.UNCHOKE, null);
 		for (int i = 1; i <= k + 1; i++) {
 			String peerId = optimisticallyUnchokeNeighbor();
 			System.out.println("Unchoking " + peerId);
 			try {
-				System.out.println(new String(messageLength, "UTF-8"));
+				// System.out.println(new String(messageLength, "UTF-8"));
 				System.out.println(new String(messagePayload, "UTF-8"));
 			} catch (UnsupportedEncodingException e) {
 				// TODO Auto-generated catch block

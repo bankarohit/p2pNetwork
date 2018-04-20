@@ -1,23 +1,26 @@
 package cise.ufl.edu.p2p.messages;
 
-import java.nio.ByteBuffer;
+import java.util.BitSet;
 
-import cise.ufl.edu.p2p.peer.FileHandler;
+import cise.ufl.edu.p2p.peer.CommonProperties;
+import cise.ufl.edu.p2p.peer.SharedFile;
 
 public class BitField extends Message {
 
 	private static BitField bitfield = new BitField();
 
 	private BitField() {
-		content = FileHandler.getFilePieces().toByteArray();
 		type = 5;
-		bytebuffer = ByteBuffer.allocate(4);
-		bytebuffer.putInt(0, content.length + 1);
-		bytebuffer.get(messageLength, 0, 4);
-		bytebuffer = ByteBuffer.wrap(content);
-		payload = new byte[content.length + 1];
+		BitSet filePieces = SharedFile.getFilePieces();
+		payload = new byte[CommonProperties.getNumberOfPieces() + 1];
 		payload[0] = type;
-		bytebuffer.get(payload, 1, content.length);
+		content = new byte[CommonProperties.getNumberOfPieces()];
+		for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
+			if (filePieces.get(i)) {
+				content[i] = 1;
+				payload[i + 1] = 1;
+			}
+		}
 	}
 
 	public synchronized static BitField getInstance() {
@@ -25,8 +28,8 @@ public class BitField extends Message {
 	}
 
 	@Override
-	protected synchronized byte[] getMessageLength() {
-		return messageLength;
+	protected synchronized int getMessageLength() {
+		return payload.length;
 	}
 
 	@Override

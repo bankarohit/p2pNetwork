@@ -43,33 +43,25 @@ public class MessageManager {
 		return temp.getInt();
 	}
 
-	public synchronized byte[] getMessageLength(Type messageType, ByteBuffer data) {
-		byte[] messageLength = new byte[4];
-		ByteBuffer bytebuffer = ByteBuffer.allocate(4);
+	public synchronized int getMessageLength(Type messageType, ByteBuffer data) {
 		switch (messageType) {
 		case CHOKE:
 		case UNCHOKE:
 		case INTERESTED:
 		case NOTINTERESTED:
-			bytebuffer.putInt(0, 1);
-			break;
+			return 1;
+		case REQUEST:
 		case HAVE:
-			bytebuffer.putInt(0, 5);
-			break;
+			return 5;
 		case BITFIELD:
 			BitField bitfield = BitField.getInstance();
-			messageLength = bitfield.getMessageLength();
-		case REQUEST:
-			bytebuffer.putInt(0, 5);
-			break;
+			return bitfield.getMessageLength();
 		case PIECE:
 			int pieceIndex = data.getInt();
 			int payloadLength = 4 + FileHandler.getPiece(pieceIndex).length + 1;
-			bytebuffer.putInt(0, payloadLength);
-			break;
+			return payloadLength;
 		}
-		bytebuffer.get(messageLength, 0, 4);
-		return messageLength;
+		return -1;
 	}
 
 	public synchronized byte[] getMessagePayload(Type messageType, ByteBuffer data) {
