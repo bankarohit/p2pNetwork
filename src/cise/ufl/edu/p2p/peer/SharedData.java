@@ -171,13 +171,13 @@ public class SharedData {
 			conn.sendMessage(Arrays.copyOfRange(handshake, 0, 4), Arrays.copyOfRange(handshake, 4, 32));
 			if (getDownloadHandshake()) {
 				sendMessage(Message.Type.BITFIELD, null);
-				conn.receiveMessage();
+				// conn.receiveMessage();
 			}
 			return;
 		case BITFIELD:
 			if (!host.hasFile()) {
 				System.out.println("Don't have bitfield waiting to receive message.. ");
-				conn.receiveMessage();
+				// conn.receiveMessage();
 				return;
 			}
 			break;
@@ -199,7 +199,8 @@ public class SharedData {
 		// System.out.println("Send message: " + messageType + " to " + remotePeerId);
 		messageLength = messageManager.getMessageLength(messageType, data);
 		payload = messageManager.getMessagePayload(messageType, data);
-		System.out.println("Send messagelength: " + messageManager.processLength(messageLength) + " to " + remotePeerId);
+		System.out
+				.println("Send messagelength: " + messageManager.processLength(messageLength) + " to " + remotePeerId);
 		System.out.println("Send messagetype: " + payload[0] + " to " + remotePeerId);
 		conn.sendMessage(messageLength, payload);
 	}

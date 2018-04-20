@@ -44,21 +44,23 @@ public class Download implements Runnable {
 		byte[] handshake = new byte[32];
 		receiveRawData(handshake);
 		sharedData.processPayload(handshake);
+		receiveMessage();
 	}
 
 	protected void receiveMessage() {
+		System.out.println("Receive started");
 		byte[] messageLength = new byte[4];
 		receiveMessageLength(messageLength);
 		int len = sharedData.processMessageLength(messageLength);
 		byte[] payload = new byte[len];
 		receiveMessagePayload(payload);
 		sharedData.processPayload(payload);
-
+		System.out.println("Receive finished");
+		receiveMessage();
 	}
 
 	private void receiveMessageLength(byte[] messageLength) {
 		receiveRawData(messageLength);
-
 	}
 
 	private void receiveMessagePayload(byte[] payload) {

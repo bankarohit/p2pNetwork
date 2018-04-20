@@ -133,7 +133,7 @@ public class ConnectionManager {
 		monitor();
 	}
 
-	public String optimisticallyUnchokeNeighbor() {
+	public synchronized String optimisticallyUnchokeNeighbor() {
 		if (interestedPeerIds.size() <= 0) {
 			return null;
 		}
@@ -147,11 +147,11 @@ public class ConnectionManager {
 		return requestedPieces.contains(pieceIndex);
 	}
 
-	protected void createConnection(Socket socket, String peerId) {
+	protected synchronized void createConnection(Socket socket, String peerId) {
 		new Connection(socket, peerId);
 	}
 
-	protected void createConnection(Socket socket) {
+	protected synchronized void createConnection(Socket socket) {
 		new Connection(socket);
 	}
 
