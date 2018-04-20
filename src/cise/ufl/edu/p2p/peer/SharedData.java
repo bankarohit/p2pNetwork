@@ -22,6 +22,7 @@ public class SharedData {
 	}
 
 	public synchronized void sendHandshake() {
+		setUploadHandshake();
 		sendMessage(Message.Type.HANDSHAKE, null);
 	}
 
@@ -118,7 +119,7 @@ public class SharedData {
 			// conn.choke();
 			break;
 		case UNCHOKE:
-			System.out.println("Received unchoke");
+			// System.out.println("Received unchoke");
 			responseMessageType = Message.Type.REQUEST;
 			break;
 		case INTERESTED:
@@ -140,6 +141,7 @@ public class SharedData {
 		case REQUEST:
 			responseMessageType = Message.Type.PIECE;
 			content = payload;
+			System.out.println("Received request for piece" + ByteBuffer.wrap(content).getInt());
 			break;
 		case PIECE:
 			// conn.tellAllNeighbors(content);
@@ -166,7 +168,6 @@ public class SharedData {
 		case HANDSHAKE:
 			byte[] handshake = Handshake.getMessage();
 			conn.sendMessage(32, Arrays.copyOfRange(handshake, 4, 32));
-			setUploadHandshake();
 			return;
 		case BITFIELD:
 			if (!host.hasFile()) {
