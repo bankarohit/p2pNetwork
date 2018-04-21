@@ -3,7 +3,6 @@ package p2p;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 
 public class Peer {
@@ -66,12 +65,8 @@ public class Peer {
 		try {
 			Socket clientSocket = new Socket(peerHost, peerPort);
 			connectionManager.createConnection(clientSocket, peerInfo.getPeerId());
-
-		} catch (UnknownHostException e) {
-			System.out.println("Could not find host: " + peerHost);
-			e.printStackTrace();
-		} catch (IOException e) {
-			System.out.println("Found peerhost " + peerHost + " but could not establish TCP connection");
+			Thread.sleep(200);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

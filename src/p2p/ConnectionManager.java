@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.PriorityQueue;
 
-
 public class ConnectionManager {
 
 	private static ConnectionManager connectionManager = new ConnectionManager();
@@ -66,11 +65,13 @@ public class ConnectionManager {
 	 * interested if present. Add to interested.
 	 */
 	public synchronized void addInterestedConnection(String peerId, Connection connection) {
+		System.out.println(totalConnections + " " + (n - 1));
 		if (totalConnections < n - 1) {
 			totalConnections++;
+
 			interested.put(peerId, connection);
 			interestedPeerIds.add(peerId);
-			System.out.println(totalConnections + " " + (n - 1));
+
 			if (totalConnections == n - 1) {
 				startTransfer();
 			}
