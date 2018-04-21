@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -67,6 +68,35 @@ public class SharedFile {
 		// filePieces.get(0));
 	}
 
+	public static void writeToFile() {
+
+		// TODO: Need to give correct filename.
+		String filename = Constants.COMMON_PROPERTIES_MY_FILE_PATH;
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(filename);
+			for (int i = 0; i < file.size(); i++) {
+				try {
+					fos.write(file.get(i));
+					// System.out.println(file.get(i).hashCode());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				fos.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public static byte[] getPiece(int index) {
 		return file.get(index);
 	}
@@ -89,6 +119,10 @@ public class SharedFile {
 
 	public static synchronized boolean isPieceAvailable(int index) {
 		return filePieces.get(index);
+	}
+
+	public static synchronized int getFileSize() {
+		return file.size();
 	}
 
 	public static synchronized BitSet getFilePieces() {

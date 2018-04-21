@@ -1,6 +1,5 @@
 package p2p;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -27,8 +26,7 @@ public class FileHandler {
 
 	// SplitFile function will get the appropriate file and split into chunks.
 	public static void splitFile() {
-		String filename = System.getProperty("user.dir") + File.separatorChar + "src" + File.separatorChar
-				+ CommonProperties.getFileName();
+		String filename = Constants.COMMON_PROPERTIES_FILE_PATH;
 		// System.out.println(filename);
 		FileInputStream fis = null;
 		try {
@@ -76,8 +74,7 @@ public class FileHandler {
 	public static void writeToFile() {
 
 		// TODO: Need to give correct filename.
-		String filename = System.getProperty("user.dir") + File.separatorChar + "src" + File.separatorChar
-				+ CommonProperties.getFileName() + "_copy";
+		String filename = Constants.COMMON_PROPERTIES_MY_FILE_PATH;
 		FileOutputStream fos = null;
 		try {
 			fos = new FileOutputStream(filename);

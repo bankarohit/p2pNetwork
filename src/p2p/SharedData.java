@@ -12,6 +12,7 @@ public class SharedData {
 	private volatile boolean uploadHandshake;
 	private MessageManager messageManager = MessageManager.getInstance();
 	private Peer host = Peer.getInstance();
+	int i = 0;
 
 	public SharedData(Connection connection) {
 		conn = connection;
@@ -42,14 +43,14 @@ public class SharedData {
 		this.remotePeerId = remotePeerId;
 	}
 
-	private int getRandomPiece() {
-		int pieceIndex = 0;
-		int numberOfPieces = CommonProperties.getNumberOfPieces();
-		do {
-			pieceIndex = (int) (Math.random() * numberOfPieces);
-		} while (!peerHasPiece(pieceIndex) && !conn.isRequested(pieceIndex));
-		return pieceIndex;
-	}
+	// private int getRandomPiece() {
+	// int pieceIndex = 0;
+	// int numberOfPieces = CommonProperties.getNumberOfPieces();
+	// do {
+	// pieceIndex = (int) (Math.random() * numberOfPieces);
+	// } while (!peerHasPiece(pieceIndex) && !conn.isRequested(pieceIndex));
+	// return pieceIndex;
+	// }
 
 	public boolean isBitfieldSent() {
 		return bitfieldSent;
@@ -143,6 +144,7 @@ public class SharedData {
 			System.out.println("Received pieceindex & setting: " + ByteBuffer.wrap(payload, 1, 4).getInt());
 			SharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
 			responseMessageType = Message.Type.REQUEST;
+			System.out.println("Received piece: " + i++);
 			break;
 		default:
 			System.out.println("Received hanshake in error");
@@ -175,6 +177,10 @@ public class SharedData {
 		case REQUEST:
 			// assume getRequestPieceIndex() works correctly
 			pieceIndex = getRequestPieceIndex();
+			if (pieceIndex == Integer.MIN_VALUE) {
+				SharedFile.writeToFile();
+				System.exit(0);
+			}
 			conn.setRequested(pieceIndex);
 			System.out.println("Requested piece: " + pieceIndex);
 			break;
@@ -196,11 +202,17 @@ public class SharedData {
 	}
 
 	private int getRequestPieceIndex() {
-		int requestPiece = 0;
+		int requestPieceIndex = 0;
+		int numberOfPieces = CommonProperties.getNumberOfPieces();
 		do {
-			requestPiece = getRandomPiece();
-		} while (SharedFile.isPieceAvailable(requestPiece));
-		return requestPiece;
+			requestPieceIndex = (int) (Math.random() * numberOfPieces);
+			if (SharedFile.getFileSize() == CommonProperties.getNumberOfPieces()) {
+				requestPieceIndex = Integer.MIN_VALUE;
+				break;
+			}
+		} while (!peerHasPiece(requestPieceIndex) && !conn.isRequested(requestPieceIndex)
+				&& SharedFile.isPieceAvailable(requestPieceIndex));
+		return requestPieceIndex;
 	}
 
 }
