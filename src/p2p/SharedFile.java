@@ -22,7 +22,7 @@ public class SharedFile {
 
 	public static void splitFile() {
 
-		File filePtr = new File(Constants.COMMON_PROPERTIES_FILE_PATH);
+		File filePtr = new File(Constants.COMMON_PROPERTIES_FILE_PATH + CommonProperties.getFileName());
 		FileInputStream fis = null;
 		DataInputStream dis = null;
 		int fileSize = (int) CommonProperties.getFileSize();
@@ -70,11 +70,20 @@ public class SharedFile {
 
 	public static void writeToFile() {
 
-		// TODO: Need to give correct filename.
-		String filename = Constants.COMMON_PROPERTIES_MY_FILE_PATH;
+		File createdFile = null;
+		try {
+			createdFile = new File(
+					Constants.COMMON_PROPERTIES_CREATED_FILE_PATH + Peer.getInstance().getNetwork().getPeerId()
+							+ File.separatorChar + CommonProperties.getFileName());
+			createdFile.getParentFile().mkdirs(); // Will create parent directories if not exists
+			createdFile.createNewFile();
+		} catch (IOException e) {
+			System.out.println("Failed to create new file while receiving the file from host peer");
+			e.printStackTrace();
+		}
 		FileOutputStream fos = null;
 		try {
-			fos = new FileOutputStream(filename);
+			fos = new FileOutputStream(createdFile, false);
 			for (int i = 0; i < file.size(); i++) {
 				try {
 					fos.write(file.get(i));

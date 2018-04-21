@@ -2,7 +2,6 @@ package p2p;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,7 +25,7 @@ public class FileHandler {
 
 	// SplitFile function will get the appropriate file and split into chunks.
 	public static void splitFile() {
-		String filename = Constants.COMMON_PROPERTIES_FILE_PATH;
+		String filename = Constants.COMMON_PROPERTIES_FILE_PATH + CommonProperties.getFileName();
 		// System.out.println(filename);
 		FileInputStream fis = null;
 		try {
@@ -71,27 +70,17 @@ public class FileHandler {
 	}
 
 	// WriteToFile will write all chunks to an output file.
-	public static void writeToFile() {
-
-		// TODO: Need to give correct filename.
-		String filename = Constants.COMMON_PROPERTIES_MY_FILE_PATH;
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(filename);
-			for (int i = 0; i < file.size(); i++) {
-				try {
-					fos.write(file.get(i));
-					// System.out.println(file.get(i).hashCode());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+	/*
+	 * public static void writeToFile() {
+	 * 
+	 * // TODO: Need to give correct filename. String filename =
+	 * Constants.COMMON_PROPERTIES_MY_FILE_PATH; FileOutputStream fos = null; try {
+	 * fos = new FileOutputStream(filename); for (int i = 0; i < file.size(); i++) {
+	 * try { fos.write(file.get(i)); // System.out.println(file.get(i).hashCode());
+	 * } catch (IOException e) { // TODO Auto-generated catch block
+	 * e.printStackTrace(); } } } catch (FileNotFoundException e) { // TODO
+	 * Auto-generated catch block e.printStackTrace(); } }
+	 */
 
 	public synchronized static BitSet getFilePieces() {
 		return filePieces;

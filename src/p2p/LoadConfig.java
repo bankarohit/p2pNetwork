@@ -4,7 +4,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-
 public class LoadConfig {
 
 	public LoadConfig() {
@@ -24,6 +23,8 @@ public class LoadConfig {
 		}
 
 		CommonProperties.setFileName(properties.get(Constants.CPROP_FILENAME).toString());
+		System.out.println(Constants.COMMON_PROPERTIES_FILE_PATH + CommonProperties.getFileName());
+
 		CommonProperties.setFileSize(Long.parseLong(properties.get(Constants.CPROP_FILESIZE).toString()));
 		CommonProperties.setNumberOfPreferredNeighbors(
 				Integer.parseInt(properties.get(Constants.CPROP_NUMBER_OF_PREFERRED_NEIGHBORS).toString()));
