@@ -130,6 +130,10 @@ public class SharedFile {
 		return filePieces.get(index);
 	}
 
+	public static synchronized boolean isCompleteFile() {
+		return SharedFile.getFileSize() == CommonProperties.getNumberOfPieces();
+	}
+
 	public static synchronized int getFileSize() {
 		return file.size();
 	}

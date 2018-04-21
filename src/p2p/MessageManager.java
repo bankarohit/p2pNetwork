@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import p2p.Message.Type;
 
-
 public class MessageManager {
 	private static MessageManager messageManager = new MessageManager();
 
@@ -58,6 +57,8 @@ public class MessageManager {
 		case PIECE:
 			int payloadLength = 5 + SharedFile.getPiece(pieceIndex).length;
 			return payloadLength;
+		default:
+			System.out.println("Cannot create message length: Incorrect type");
 		}
 		return -1;
 	}
@@ -75,6 +76,9 @@ public class MessageManager {
 		case NOTINTERESTED:
 			return new byte[] { 3 };
 		case HAVE:
+			payload[0] = 4;
+			byte[] havePieceIndex = ByteBuffer.allocate(4).putInt(pieceIndex).array();
+			System.arraycopy(havePieceIndex, 0, payload, 1, 4);
 			break;
 		case BITFIELD:
 			BitField bitfield = BitField.getInstance();
@@ -95,6 +99,8 @@ public class MessageManager {
 			System.arraycopy(data, 0, payload, 1, 4);
 			System.arraycopy(piece, 0, payload, 5, pieceSize);
 			break;
+		default:
+			System.out.println("Cannot create message payload: Incorrect type");
 		}
 		return payload;
 	}

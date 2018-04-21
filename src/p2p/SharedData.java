@@ -18,6 +18,10 @@ public class SharedData {
 		conn = connection;
 	}
 
+	public BitSet getPeerBitSet() {
+		return peerBitset;
+	}
+
 	public synchronized void sendHandshake() {
 		setUploadHandshake();
 		sendMessage(Message.Type.HANDSHAKE, null);
@@ -125,6 +129,8 @@ public class SharedData {
 		switch (messageType) {
 		case CHOKE:
 			// clear requested pieces of this connection
+			conn.removeRequestedPiece();
+			responseMessageType = null;
 			break;
 		case UNCHOKE:
 			// respond with request
@@ -133,12 +139,12 @@ public class SharedData {
 		case INTERESTED:
 			// add to interested connections
 			conn.addInterestedConnection();
-			messageType = null;
+			responseMessageType = null;
 			break;
 		case NOTINTERESTED:
 			// add to not interested connections
 			conn.addNotInterestedConnection();
-			messageType = null;
+			responseMessageType = null;
 			break;
 		case HAVE:
 			// update peer bitset
@@ -161,10 +167,12 @@ public class SharedData {
 			break;
 		case PIECE:
 			// update own bitset & file
-			// send have to all neighbors except this one
+			// send have to all neighbors & notinterested to neighbors with same bitset
 			// respond with request
+			// update bytesDownloaded
 			// pi = pieceIndex
 			int pi = ByteBuffer.wrap(payload, 1, 4).getInt();
+			conn.addBytesDownloaded(payload.length);
 			System.out.println("Received pieceindex & setting: " + pi);
 			SharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
 			responseMessageType = Message.Type.REQUEST;
@@ -193,31 +201,32 @@ public class SharedData {
 			conn.sendMessage(32, Arrays.copyOfRange(handshake, 4, 32));
 			return;
 		case BITFIELD:
+			// send bitfield if have any pieces
 			if (!host.hasFile()) {
 				System.out.println("Don't have bitfield waiting to receive message.. ");
 				return;
 			}
 			break;
 		case REQUEST:
-			// assume getRequestPieceIndex() works correctly
+			// TODO: Send "close" message when pieceIndex = Integer.min_value
+			// add to requested pieces
 			pieceIndex = getRequestPieceIndex();
 			if (pieceIndex == Integer.MIN_VALUE) {
 				SharedFile.writeToFile();
 				System.exit(0);
 			}
-			conn.setRequested(pieceIndex);
+			conn.addRequestedPiece(pieceIndex);
 			System.out.println("Requested piece: " + pieceIndex);
 			break;
 		case PIECE:
+			// get piece index from buffer
 			pieceIndex = ByteBuffer.wrap(buffer).getInt();
 			System.out.println("Received request for piece " + pieceIndex);
 			break;
-		case HAVE:
-			break;
-		case NOTINTERESTED:
-			// choke download of sender
-			// conn.chokeDownload();
-			break;
+		// CHOKE, UNCHOKE, HAVE, NOTINTERESTED types of messages will only be sent by
+		// connection manager
+		default:
+			System.out.println("Tying to send an incorrect message type");
 		}
 		messageLength = messageManager.getMessageLength(messageType, pieceIndex);
 		payload = messageManager.getMessagePayload(messageType, pieceIndex);
@@ -225,18 +234,18 @@ public class SharedData {
 		conn.sendMessage(messageLength, payload);
 	}
 
+	// return piece index which has not been requested yet, peer has & i don't have
+	// if file is complete return min value
 	private int getRequestPieceIndex() {
 		int requestPieceIndex = 0;
 		int numberOfPieces = CommonProperties.getNumberOfPieces();
 		do {
-			requestPieceIndex = (int) (Math.random() * numberOfPieces);
-			if (SharedFile.getFileSize() == CommonProperties.getNumberOfPieces()) {
-				requestPieceIndex = Integer.MIN_VALUE;
-				break;
+			if (SharedFile.isCompleteFile()) {
+				return Integer.MIN_VALUE;
 			}
+			requestPieceIndex = (int) (Math.random() * numberOfPieces);
 		} while (!peerHasPiece(requestPieceIndex) && !conn.isRequested(requestPieceIndex)
 				&& SharedFile.isPieceAvailable(requestPieceIndex));
 		return requestPieceIndex;
 	}
-
 }

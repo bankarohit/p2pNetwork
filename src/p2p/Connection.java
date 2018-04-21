@@ -1,19 +1,24 @@
 package p2p;
 
 import java.net.Socket;
+import java.util.BitSet;
 
 public class Connection {
 	Upload upload;
 	Download download;
 	SharedData sharedData;
-	double speed;
+	double bytesDownloaded;
 	Socket peerSocket;
 	String remotePeerId;
 	boolean choked;
 	private ConnectionManager connectionManager = ConnectionManager.getInstance();
 
-	public double getSpeed() {
-		return speed;
+	public double getBytesDownloaded() {
+		return bytesDownloaded;
+	}
+
+	public void addBytesDownloaded(long value) {
+		bytesDownloaded += value;
 	}
 
 	public boolean isChoked() {
@@ -50,7 +55,7 @@ public class Connection {
 		downloadThread.start();
 	}
 
-	public void sendMessage(int messageLength, byte[] payload) {
+	public synchronized void sendMessage(int messageLength, byte[] payload) {
 		synchronized (upload.lengthQueue) {
 			upload.addMessageLength(messageLength);
 			upload.lengthQueue.notify();
@@ -63,6 +68,10 @@ public class Connection {
 		}
 	}
 
+	public synchronized String getRemotePeerId() {
+		return remotePeerId;
+	}
+
 	public void tellAllNeighbors(int pieceIndex) {
 		connectionManager.tellAllNeighbors(pieceIndex);
 	}
@@ -71,8 +80,8 @@ public class Connection {
 		return connectionManager.isRequested(pieceIndex);
 	}
 
-	protected void setRequested(int pieceIndex) {
-		connectionManager.setRequested(pieceIndex);
+	protected void addRequestedPiece(int pieceIndex) {
+		connectionManager.addRequestedPiece(this, pieceIndex);
 	}
 
 	public void addInterestedConnection() {
@@ -99,5 +108,14 @@ public class Connection {
 	public void setPeerId(String value) {
 		remotePeerId = value;
 
+	}
+
+	public void removeRequestedPiece() {
+		connectionManager.removeRequestedPiece(this);
+	}
+
+	public BitSet getPeerBitSet() {
+		// TODO Auto-generated method stub
+		return sharedData.getPeerBitSet();
 	}
 }
