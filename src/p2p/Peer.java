@@ -65,7 +65,7 @@ public class Peer {
 		try {
 			Socket clientSocket = new Socket(peerHost, peerPort);
 			connectionManager.createConnection(clientSocket, peerInfo.getPeerId());
-			Thread.sleep(200);
+			Thread.sleep(2000);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
