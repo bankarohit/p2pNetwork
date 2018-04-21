@@ -19,4 +19,8 @@ public class Constants {
 
 	public static final String PEER_PROPERTIES_CONFIG_PATH = System.getProperty("user.dir") + File.separatorChar
 			+ "resources/PeerInfo.cfg";
+
+	public static final String PEER_LOG_FILE_PATH = System.getProperty("user.dir") + File.separatorChar
+			+ "/project/log_peer_";
+	public static final String PEER_LOG_FILE_EXTENSION = ".log";
 }

@@ -99,6 +99,7 @@ public class SharedData {
 		remotePeerId = Handshake.getId(handshake);
 		conn.setPeerId(remotePeerId);
 		if (!getUploadHandshake()) {
+			LoggerUtil.getInstance().logTcpConnectionFrom(host.getNetwork().getPeerId(), remotePeerId);
 			System.out.println("Received handshake from: " + remotePeerId);
 			sendMessage(Message.Type.HANDSHAKE, null);
 		}
