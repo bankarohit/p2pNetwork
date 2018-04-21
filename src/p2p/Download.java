@@ -41,6 +41,7 @@ public class Download implements Runnable {
 
 	@Override
 	public void run() {
+		System.out.println("Waiting to receive handshake");
 		byte[] handshake = new byte[32];
 		receiveRawData(handshake);
 		sharedData.processHandshake(handshake);

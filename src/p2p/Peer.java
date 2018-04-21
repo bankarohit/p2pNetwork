@@ -43,7 +43,6 @@ public class Peer {
 		while (!allPeersReceivedFiles) {
 			Socket peerSocket = socket.accept();
 			connectionManager.createConnection(peerSocket);
-
 		}
 		socket.close();
 	}
@@ -65,7 +64,7 @@ public class Peer {
 		try {
 			Socket clientSocket = new Socket(peerHost, peerPort);
 			connectionManager.createConnection(clientSocket, peerInfo.getPeerId());
-			Thread.sleep(2000);
+			Thread.sleep(300);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

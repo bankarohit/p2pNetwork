@@ -82,8 +82,12 @@ public class SharedData {
 	}
 
 	private boolean isInterested() {
-		peerBitset.andNot(SharedFile.getFilePieces());
-		return peerBitset.cardinality() > 0;
+		for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
+			if (peerBitset.get(i) && !SharedFile.isPieceAvailable(i)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private Message.Type getInterestedNotInterested() {
@@ -103,6 +107,12 @@ public class SharedData {
 			System.out.println("Received handshake from: " + remotePeerId);
 			sendMessage(Message.Type.HANDSHAKE, null);
 		}
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		sendMessage(Message.Type.BITFIELD, null);
 	}
 
@@ -114,38 +124,51 @@ public class SharedData {
 		System.out.println("Received Message: " + messageType + " from " + remotePeerId);
 		switch (messageType) {
 		case CHOKE:
-			// conn.choke();
+			// clear requested pieces of this connection
 			break;
 		case UNCHOKE:
-			// System.out.println("Received unchoke");
+			// respond with request
 			responseMessageType = Message.Type.REQUEST;
 			break;
 		case INTERESTED:
+			// add to interested connections
 			conn.addInterestedConnection();
 			messageType = null;
 			break;
 		case NOTINTERESTED:
+			// add to not interested connections
 			conn.addNotInterestedConnection();
 			messageType = null;
 			break;
 		case HAVE:
-			peerHasPiece(ByteBuffer.wrap(content).getInt());
+			// update peer bitset
+			// send interested/not interested
+			int pieceIndex = ByteBuffer.wrap(payload, 1, 4).getInt();
+			updatePeerBitset(pieceIndex);
 			responseMessageType = getInterestedNotInterested();
 			break;
 		case BITFIELD:
+			// update peer bitset
+			// send interested/not interested
 			setPeerBitset(payload);
 			responseMessageType = getInterestedNotInterested();
 			break;
 		case REQUEST:
+			// send requested piece
 			responseMessageType = Message.Type.PIECE;
 			content = new byte[4];
 			System.arraycopy(payload, 1, content, 0, 4);
 			break;
 		case PIECE:
-			System.out.println("Received pieceindex & setting: " + ByteBuffer.wrap(payload, 1, 4).getInt());
+			// update own bitset & file
+			// send have to all neighbors except this one
+			// respond with request
+			// pi = pieceIndex
+			int pi = ByteBuffer.wrap(payload, 1, 4).getInt();
+			System.out.println("Received pieceindex & setting: " + pi);
 			SharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
 			responseMessageType = Message.Type.REQUEST;
-			System.out.println("Received piece: " + i++);
+			conn.tellAllNeighbors(pi);
 			break;
 		default:
 			System.out.println("Received hanshake in error");
@@ -193,7 +216,7 @@ public class SharedData {
 			break;
 		case NOTINTERESTED:
 			// choke download of sender
-			conn.chokeDownload();
+			// conn.chokeDownload();
 			break;
 		}
 		messageLength = messageManager.getMessageLength(messageType, pieceIndex);
