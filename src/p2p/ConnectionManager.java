@@ -52,12 +52,24 @@ public class ConnectionManager {
 	}
 
 	protected synchronized void tellAllNeighbors(int pieceIndex) {
+		System.out.println("Attempting to send have");
 		MessageManager messageManager = MessageManager.getInstance();
 		for (Connection conn : preferredNeighbors) {
-			int messageLength = messageManager.getMessageLength(Message.Type.HAVE, Integer.MIN_VALUE);
-			byte[] payload = messageManager.getMessagePayload(Message.Type.HAVE, pieceIndex);
-			conn.sendMessage(messageLength, payload);
+			sendHaveMessage(pieceIndex, messageManager, conn);
 		}
+		for (String peerId : interested.keySet()) {
+			sendHaveMessage(pieceIndex, messageManager, interested.get(peerId));
+		}
+		for (Connection conn : notInterested) {
+			sendHaveMessage(pieceIndex, messageManager, conn);
+		}
+	}
+
+	private void sendHaveMessage(int pieceIndex, MessageManager messageManager, Connection conn) {
+		int messageLength = messageManager.getMessageLength(Message.Type.HAVE, Integer.MIN_VALUE);
+		byte[] payload = messageManager.getMessagePayload(Message.Type.HAVE, pieceIndex);
+		System.out.println("Going to send HAVE to " + conn.remotePeerId);
+		conn.sendMessage(messageLength, payload);
 	}
 
 	/*
