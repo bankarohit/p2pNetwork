@@ -25,15 +25,6 @@ public class Download implements Runnable {
 		}
 	}
 
-	protected void choke() {
-		try {
-			Thread.sleep(CommonProperties.getUnchokingInterval() * 1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
 	// server thread initialization
 	public Download(Socket socket, SharedData data) {
 		init(socket, data);
@@ -41,10 +32,6 @@ public class Download implements Runnable {
 
 	@Override
 	public void run() {
-		System.out.println("Waiting to receive handshake");
-		byte[] handshake = new byte[32];
-		receiveRawData(handshake);
-		sharedData.processHandshake(handshake);
 		receiveMessage();
 	}
 
@@ -54,7 +41,7 @@ public class Download implements Runnable {
 		messageLength = receiveMessageLength();
 		byte[] payload = new byte[messageLength];
 		receiveMessagePayload(payload);
-		sharedData.processPayload(payload);
+		sharedData.addPayload(payload);
 		System.out.println("Receive finished");
 		receiveMessage();
 	}

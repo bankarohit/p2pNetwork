@@ -22,8 +22,8 @@ public class ConnectionManager {
 	private int m = CommonProperties.getOptimisticUnchokingInterval();
 	private int p = CommonProperties.getUnchokingInterval();
 	private int n = LoadPeerList.numberOfPeers();
-	private int maxConnections = k + 1;
-	private int totalConnections = 0;
+	// private int maxConnections = k + 1;
+	// private int totalConnections = 0;
 	private BroadcastThread broadcaster;
 
 	private ConnectionManager() {
@@ -73,6 +73,7 @@ public class ConnectionManager {
 	}
 
 	protected synchronized void tellAllNeighbors(int pieceIndex) {
+
 		for (String peerId : interested.keySet()) {
 			broadcaster.addMessage(new Object[] { interested.get(peerId), Message.Type.HAVE, pieceIndex });
 		}

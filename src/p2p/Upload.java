@@ -8,9 +8,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class Upload implements Runnable {
 	private Socket socket;
 	private DataOutputStream out;
-	private SharedData sharedData;
-	protected LinkedBlockingQueue<Integer> lengthQueue;
-	protected LinkedBlockingQueue<byte[]> payloadQueue;
+	protected LinkedBlockingQueue<Integer> uploadLengthQueue;
+	protected LinkedBlockingQueue<byte[]> uploadPayloadQueue;
 	private boolean isAlive;
 
 	// client thread initialization
@@ -24,11 +23,11 @@ public class Upload implements Runnable {
 	}
 
 	private void init(Socket clientSocket, SharedData data) {
-		payloadQueue = new LinkedBlockingQueue<>();
-		lengthQueue = new LinkedBlockingQueue<>();
+		uploadPayloadQueue = new LinkedBlockingQueue<>();
+		uploadLengthQueue = new LinkedBlockingQueue<>();
 		isAlive = true;
 		this.socket = clientSocket;
-		sharedData = data;
+		// sharedData = data;
 		try {
 			out = new DataOutputStream(socket.getOutputStream());
 		} catch (IOException e) {
@@ -40,57 +39,23 @@ public class Upload implements Runnable {
 	@Override
 	public void run() {
 		while (isAlive) {
-			synchronized (lengthQueue) {
-				try {
-					lengthQueue.wait();
-					int messageLength = lengthQueue.poll();
-					out.writeInt(messageLength);
-					out.flush();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			synchronized (payloadQueue) {
-				try {
-					if (payloadQueue.size() <= 0) {
-						payloadQueue.wait();
-					}
-					byte[] payload = payloadQueue.poll();
-					sendRawData(payload);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
+			try {
+				int messageLength = uploadLengthQueue.take();
+				out.writeInt(messageLength);
+				out.flush();
+				byte[] payload = uploadPayloadQueue.take();
+				out.write(payload);
+				out.flush();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}
 
-	private void sendRawData(byte[] message) {
-		// try {
-		// System.out.println("Sent message: " + new String(message, "UTF-8"));
-		// } catch (UnsupportedEncodingException e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
+	public void addMessage(int length, byte[] payload) {
 		try {
-			out.write(message);
-			out.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	public void addMessageLength(int length) {
-		lengthQueue.offer(length);
-	}
-
-	public void addMessagePayload(byte[] payload) {
-		payloadQueue.offer(payload);
-	}
-
-	protected void choke() {
-		try {
-			Thread.sleep(CommonProperties.getUnchokingInterval() * 1000);
+			uploadLengthQueue.put(length);
+			uploadPayloadQueue.put(payload);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

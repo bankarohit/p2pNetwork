@@ -57,8 +57,8 @@ public class MessageManager {
 		case PIECE:
 			int payloadLength = 5 + SharedFile.getPiece(pieceIndex).length;
 			return payloadLength;
-		default:
-			System.out.println("Cannot create message length: Incorrect type");
+		case HANDSHAKE:
+			return 32;
 		}
 		return -1;
 	}
@@ -99,8 +99,8 @@ public class MessageManager {
 			System.arraycopy(data, 0, payload, 1, 4);
 			System.arraycopy(piece, 0, payload, 5, pieceSize);
 			break;
-		default:
-			System.out.println("Cannot create message payload: Incorrect type");
+		case HANDSHAKE:
+			return Handshake.getMessage();
 		}
 		return payload;
 	}

@@ -17,6 +17,10 @@ public class Connection {
 		return bytesDownloaded;
 	}
 
+	protected Upload getUpload() {
+		return upload;
+	}
+
 	public void addBytesDownloaded(long value) {
 		bytesDownloaded += value;
 	}
@@ -25,18 +29,13 @@ public class Connection {
 		return choked;
 	}
 
-	public void setChoked(boolean choked) {
-		this.choked = choked;
-		if (choked) {
-			download.choke();
-		}
-	}
-
 	public Connection(Socket peerSocket) {
 		sharedData = new SharedData(this);
 		upload = new Upload(peerSocket, sharedData);
 		download = new Download(peerSocket, sharedData);
 		createThreads(upload, download);
+		sharedData.setUpload(upload);
+		sharedData.start();
 	}
 
 	public Connection(Socket peerSocket, String peerId) {
@@ -46,6 +45,8 @@ public class Connection {
 		createThreads(upload, download);
 		LoggerUtil.getInstance().logTcpConnectionTo(Peer.getInstance().getNetwork().getPeerId(), peerId);
 		sharedData.sendHandshake();
+		sharedData.setUpload(upload);
+		sharedData.start();
 	}
 
 	public void createThreads(Upload upload, Download download) {
@@ -56,16 +57,7 @@ public class Connection {
 	}
 
 	public synchronized void sendMessage(int messageLength, byte[] payload) {
-		synchronized (upload.lengthQueue) {
-			upload.addMessageLength(messageLength);
-			upload.lengthQueue.notify();
-			// System.out.println("Added message length");
-		}
-		synchronized (upload.payloadQueue) {
-			/// System.out.println("Added message payload");
-			upload.addMessagePayload(payload);
-			upload.payloadQueue.notify();
-		}
+		upload.addMessage(messageLength, payload);
 	}
 
 	public synchronized String getRemotePeerId() {
@@ -92,17 +84,8 @@ public class Connection {
 		connectionManager.addNotInterestedConnection(remotePeerId, this);
 	}
 
-	public void chokeDownload() {
-		download.choke();
-	}
-
-	public void chokeUpload() {
-		upload.choke();
-	}
-
 	public void receiveMessage() {
 		download.receiveMessage();
-
 	}
 
 	public void setPeerId(String value) {

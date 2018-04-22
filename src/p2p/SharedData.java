@@ -3,19 +3,75 @@ package p2p;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class SharedData {
+public class SharedData extends Thread {
 	private volatile boolean bitfieldSent;
 	private BitSet peerBitset;
 	private String remotePeerId;
 	private Connection conn;
 	private volatile boolean uploadHandshake;
+	private volatile boolean isHandshakeDownloaded;
+
+	public boolean isHandshakeDownloaded() {
+		return isHandshakeDownloaded;
+	}
+
+	public void setHandshakeDownloaded() {
+		isHandshakeDownloaded = true;
+	}
+
 	private MessageManager messageManager = MessageManager.getInstance();
 	private Peer host = Peer.getInstance();
 	int i = 0;
+	private LinkedBlockingQueue<byte[]> payloadQueue;
+	private boolean isAlive;
+	Upload upload;
+
+	public void addPayloadQueueMessage(byte[] payload) {
+		payloadQueue.offer(payload);
+	}
+	// private static SharedData sharedData;
+	//
+	// static {
+	// sharedData = new SharedData();
+	// }
 
 	public SharedData(Connection connection) {
 		conn = connection;
+		payloadQueue = new LinkedBlockingQueue<>();
+		isAlive = true;
+	}
+
+	public void setUpload(Upload value) {
+		upload = value;
+		if (getUploadHandshake()) {
+			// System.out.println("Sending handshake: " + ++i);
+			buildMessage(Message.Type.HANDSHAKE, null);
+			System.out.println("handshake sent");
+		}
+	}
+
+	@Override
+	public void run() {
+		while (isAlive) {
+			try {
+				byte[] p = payloadQueue.take();
+				processPayload(p);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void addPayload(byte[] payload) {
+		try {
+			payloadQueue.put(payload);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public BitSet getPeerBitSet() {
@@ -24,7 +80,6 @@ public class SharedData {
 
 	public synchronized void sendHandshake() {
 		setUploadHandshake();
-		sendMessage(Message.Type.HANDSHAKE, null);
 	}
 
 	public synchronized void setUploadHandshake() {
@@ -103,28 +158,16 @@ public class SharedData {
 		return messageType;
 	}
 
-	protected void processHandshake(byte[] handshake) {
-		remotePeerId = Handshake.getId(handshake);
-		conn.setPeerId(remotePeerId);
-		if (!getUploadHandshake()) {
-			LoggerUtil.getInstance().logTcpConnectionFrom(host.getNetwork().getPeerId(), remotePeerId);
-			System.out.println("Received handshake from: " + remotePeerId);
-			sendMessage(Message.Type.HANDSHAKE, null);
-		}
-		try {
-			Thread.sleep(200);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		sendMessage(Message.Type.BITFIELD, null);
-	}
-
 	protected void processPayload(byte[] payload) {
 		Message.Type messageType = null;
 		byte[] content = null;
 		Message.Type responseMessageType = null;
-		messageType = messageManager.getType(payload[0]);
+		if (!isHandshakeDownloaded()) {
+			messageType = Message.Type.HANDSHAKE;
+			setHandshakeDownloaded();
+		} else {
+			messageType = messageManager.getType(payload[0]);
+		}
 		System.out.println("Received Message: " + messageType + " from " + remotePeerId);
 		switch (messageType) {
 		case CHOKE:
@@ -178,12 +221,25 @@ public class SharedData {
 			responseMessageType = Message.Type.REQUEST;
 			conn.tellAllNeighbors(pi);
 			break;
-		default:
-			System.out.println("Received hanshake in error");
+		case HANDSHAKE:
+			remotePeerId = Handshake.getId(payload);
+			conn.setPeerId(remotePeerId);
+			if (!getUploadHandshake()) {
+				setUploadHandshake();
+				LoggerUtil.getInstance().logTcpConnectionFrom(host.getNetwork().getPeerId(), remotePeerId);
+				System.out.println("Received handshake from: " + remotePeerId);
+				responseMessageType = Message.Type.HANDSHAKE;
+				buildMessage(Message.Type.HANDSHAKE, null);
+			}
+			if (host.hasFile()) {
+				responseMessageType = Message.Type.BITFIELD;
+			} else {
+				responseMessageType = null;
+			}
 			break;
 		}
 		if (responseMessageType != null)
-			sendMessage(responseMessageType, content);
+			buildMessage(responseMessageType, content);
 	}
 
 	/*
@@ -191,21 +247,12 @@ public class SharedData {
 	 * & payload always fixed. Call to message manager will retrieve appropriate
 	 * data
 	 */
-	private void sendMessage(Message.Type messageType, byte[] buffer) {
-		int messageLength = Integer.MIN_VALUE;
-		byte[] payload = null;
+	private void buildMessage(Message.Type messageType, byte[] buffer) {
 		int pieceIndex = Integer.MIN_VALUE;
 		switch (messageType) {
 		case HANDSHAKE:
-			byte[] handshake = Handshake.getMessage();
-			conn.sendMessage(32, Arrays.copyOfRange(handshake, 4, 32));
-			return;
+			break;
 		case BITFIELD:
-			// send bitfield if have any pieces
-			if (!host.hasFile()) {
-				System.out.println("Don't have bitfield waiting to receive message.. ");
-				return;
-			}
 			break;
 		case REQUEST:
 			// TODO: Send "close" message when pieceIndex = Integer.min_value
@@ -228,10 +275,17 @@ public class SharedData {
 		default:
 			System.out.println("Tying to send an incorrect message type");
 		}
+		if (messageType != null)
+			sendMessage(messageType, pieceIndex);
+	}
+
+	protected void sendMessage(Message.Type messageType, int pieceIndex) {
+		int messageLength = Integer.MIN_VALUE;
+		byte[] payload = null;
 		messageLength = messageManager.getMessageLength(messageType, pieceIndex);
 		payload = messageManager.getMessagePayload(messageType, pieceIndex);
+		upload.addMessage(messageLength, payload);
 		System.out.println("Sending message " + messageType + " of length " + messageLength + " to " + remotePeerId);
-		conn.sendMessage(messageLength, payload);
 	}
 
 	// return piece index which has not been requested yet, peer has & i don't have
