@@ -172,20 +172,26 @@ public class SharedData extends Thread {
 		// remotePeerId);
 		switch (messageType) {
 		case CHOKE:
+			// Log Choking
+			LoggerUtil.getInstance().logChokingNeighbor(host.getNetwork().getPeerId(), remotePeerId);
 			// clear requested pieces of this connection
 			conn.removeRequestedPiece();
 			responseMessageType = null;
 			break;
 		case UNCHOKE:
+			// Log Unchoke
+			LoggerUtil.getInstance().logUnchokingNeighbor(host.getNetwork().getPeerId(), remotePeerId);
 			// respond with request
 			responseMessageType = Message.Type.REQUEST;
 			break;
 		case INTERESTED:
+			LoggerUtil.getInstance().logReceivedInterestedMessage(host.getNetwork().getPeerId(), remotePeerId);
 			// add to interested connections
 			conn.addInterestedConnection();
 			responseMessageType = null;
 			break;
 		case NOTINTERESTED:
+			LoggerUtil.getInstance().logReceivedNotInterestedMessage(host.getNetwork().getPeerId(), remotePeerId);
 			// add to not interested connections
 			conn.addNotInterestedConnection();
 			responseMessageType = null;
@@ -194,6 +200,7 @@ public class SharedData extends Thread {
 			// update peer bitset
 			// send interested/not interested
 			int pieceIndex = ByteBuffer.wrap(payload, 1, 4).getInt();
+			LoggerUtil.getInstance().logReceivedHaveMessage(host.getNetwork().getPeerId(), remotePeerId,pieceIndex);
 			updatePeerBitset(pieceIndex);
 			responseMessageType = getInterestedNotInterested();
 			break;
@@ -220,6 +227,7 @@ public class SharedData extends Thread {
 			// System.out.println("Received pieceindex & setting: " + pi);
 			SharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
 			responseMessageType = Message.Type.REQUEST;
+			LoggerUtil.getInstance().logDownloadedPiece(host.getNetwork().getPeerId(), remotePeerId,pi);
 			conn.tellAllNeighbors(pi);
 			break;
 		case HANDSHAKE:
