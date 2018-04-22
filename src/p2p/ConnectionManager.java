@@ -45,7 +45,7 @@ public class ConnectionManager {
 				if (preferredNeighbors.size() > k) {
 					Connection conn = preferredNeighbors.poll();
 					broadcaster.addMessage(new Object[] { conn, Message.Type.CHOKE, Integer.MIN_VALUE });
-					System.out.println("Choking:" + conn.getRemotePeerId());
+					// System.out.println("Choking:" + conn.getRemotePeerId());
 				}
 			}
 		}, new Date(), p * 1000);
@@ -60,7 +60,7 @@ public class ConnectionManager {
 						Connection conn = temp.get(randomNeighbor);
 						broadcaster.addMessage(new Object[] { conn, Message.Type.UNCHOKE, Integer.MIN_VALUE });
 						preferredNeighbors.add(conn);
-						System.out.println("Optimistically unchoking:" + conn.getRemotePeerId());
+						// System.out.println("Optimistically unchoking:" + conn.getRemotePeerId());
 					}
 				}
 			}

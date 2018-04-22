@@ -48,7 +48,7 @@ public class SharedData extends Thread {
 		if (getUploadHandshake()) {
 			// System.out.println("Sending handshake: " + ++i);
 			buildMessage(Message.Type.HANDSHAKE, null);
-			System.out.println("handshake sent");
+			// System.out.println("handshake sent");
 		}
 	}
 
@@ -168,7 +168,8 @@ public class SharedData extends Thread {
 		} else {
 			messageType = messageManager.getType(payload[0]);
 		}
-		System.out.println("Received Message: " + messageType + " from " + remotePeerId);
+		// System.out.println("Received Message: " + messageType + " from " +
+		// remotePeerId);
 		switch (messageType) {
 		case CHOKE:
 			// clear requested pieces of this connection
@@ -216,7 +217,7 @@ public class SharedData extends Thread {
 			// pi = pieceIndex
 			int pi = ByteBuffer.wrap(payload, 1, 4).getInt();
 			conn.addBytesDownloaded(payload.length);
-			System.out.println("Received pieceindex & setting: " + pi);
+			// System.out.println("Received pieceindex & setting: " + pi);
 			SharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
 			responseMessageType = Message.Type.REQUEST;
 			conn.tellAllNeighbors(pi);
@@ -227,7 +228,7 @@ public class SharedData extends Thread {
 			if (!getUploadHandshake()) {
 				setUploadHandshake();
 				LoggerUtil.getInstance().logTcpConnectionFrom(host.getNetwork().getPeerId(), remotePeerId);
-				System.out.println("Received handshake from: " + remotePeerId);
+				// System.out.println("Received handshake from: " + remotePeerId);
 				responseMessageType = Message.Type.HANDSHAKE;
 				buildMessage(Message.Type.HANDSHAKE, null);
 			}
@@ -263,17 +264,17 @@ public class SharedData extends Thread {
 				System.exit(0);
 			}
 			conn.addRequestedPiece(pieceIndex);
-			System.out.println("Requested piece: " + pieceIndex);
+			// System.out.println("Requested piece: " + pieceIndex);
 			break;
 		case PIECE:
 			// get piece index from buffer
 			pieceIndex = ByteBuffer.wrap(buffer).getInt();
-			System.out.println("Received request for piece " + pieceIndex);
+			// System.out.println("Received request for piece " + pieceIndex);
 			break;
 		// CHOKE, UNCHOKE, HAVE, NOTINTERESTED types of messages will only be sent by
 		// connection manager
 		default:
-			System.out.println("Tying to send an incorrect message type");
+			// System.out.println("Tying to send an incorrect message type");
 		}
 		if (messageType != null)
 			sendMessage(messageType, pieceIndex);
@@ -285,7 +286,8 @@ public class SharedData extends Thread {
 		messageLength = messageManager.getMessageLength(messageType, pieceIndex);
 		payload = messageManager.getMessagePayload(messageType, pieceIndex);
 		upload.addMessage(messageLength, payload);
-		System.out.println("Sending message " + messageType + " of length " + messageLength + " to " + remotePeerId);
+		// System.out.println("Sending message " + messageType + " of length " +
+		// messageLength + " to " + remotePeerId);
 	}
 
 	// return piece index which has not been requested yet, peer has & i don't have

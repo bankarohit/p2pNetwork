@@ -27,7 +27,7 @@ public class SharedFile {
 		DataInputStream dis = null;
 		int fileSize = (int) CommonProperties.getFileSize();
 		int numberOfPieces = CommonProperties.getNumberOfPieces();
-		System.out.println("Filesize: " + fileSize);
+		// System.out.println("Filesize: " + fileSize);
 		try {
 			fis = new FileInputStream(filePtr);
 			dis = new DataInputStream(fis);
@@ -120,7 +120,7 @@ public class SharedFile {
 
 	public static synchronized void setPiece(byte[] payload) {
 		int pieceIndex = ByteBuffer.wrap(payload, 0, 4).getInt();
-		System.out.println("Setting pieceIndex: " + pieceIndex);
+		// System.out.println("Setting pieceIndex: " + pieceIndex);
 		filePieces.set(pieceIndex);
 		file.put(pieceIndex, Arrays.copyOfRange(payload, 4, payload.length));
 

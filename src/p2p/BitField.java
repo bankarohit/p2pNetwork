@@ -1,6 +1,6 @@
 package p2p;
 
-import java.util.BitSet; 
+import java.util.BitSet;
 
 public class BitField extends Message {
 
