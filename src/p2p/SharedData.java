@@ -206,7 +206,8 @@ public class SharedData extends Thread {
 				LoggerUtil.getInstance().logFinishedDownloading(getTime(), peerProcessMain.getId());
 				messageType = null;
 				isAlive = false;
-				conn.close();
+				responseMessageType = null;
+				// conn.close();
 			}
 			break;
 		case HANDSHAKE:
