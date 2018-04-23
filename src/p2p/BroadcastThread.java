@@ -42,6 +42,8 @@ public class BroadcastThread extends Thread {
 			conn = (Connection) data[0];
 			messageType = (Message.Type) data[1];
 			pieceIndex = (int) data[2];
+			System.out.println(
+					"Broadcaster: Building " + messageType + pieceIndex + " to peer " + conn.getRemotePeerId());
 			int messageLength = messageManager.getMessageLength(messageType, pieceIndex);
 			byte[] payload = messageManager.getMessagePayload(messageType, pieceIndex);
 			conn.sendMessage(messageLength, payload);

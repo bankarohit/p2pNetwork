@@ -88,26 +88,19 @@ public class SharedData extends Thread {
 		this.remotePeerId = remotePeerId;
 	}
 
-	public boolean isBitfieldSent() {
-		return bitfieldSent;
-	}
-
 	public synchronized void setBitfieldSent() {
 		bitfieldSent = true;
 	}
 
-	public void setPeerBitset(byte[] payload) {
+	public synchronized void setPeerBitset(byte[] payload) {
 
-		peerBitset = new BitSet(payload.length - 1);
+		peerBitset = new BitSet(CommonProperties.getNumberOfPieces());
 		for (int i = 1; i < payload.length; i++) {
 			// System.out.print(payload[i]);
 			if (payload[i] == 1) {
 				peerBitset.set(i - 1);
 			}
 		}
-		// for (int i = 1; i < peerBitset.length(); i++) {
-		// System.out.print(peerBitset.get(i) ? 1 : 0 + " ");
-		// }
 	}
 
 	public synchronized void updatePeerBitset(int index) {

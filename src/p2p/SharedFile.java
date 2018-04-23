@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -119,6 +120,7 @@ public class SharedFile extends Thread {
 
 	public synchronized void setPiece(byte[] payload) {
 		filePieces.set(ByteBuffer.wrap(payload, 0, 4).getInt());
+		file.put(ByteBuffer.wrap(payload, 0, 4).getInt(), Arrays.copyOfRange(payload, 4, payload.length - 4));
 		setReceivedFileSize();
 		try {
 			fileQueue.put(payload);
@@ -158,16 +160,29 @@ public class SharedFile extends Thread {
 		BitSet peerBitset = conn.getPeerBitSet();
 		int requestPieceIndex = 0;
 		int numberOfPieces = CommonProperties.getNumberOfPieces();
+		// for (int i = 1; i < peerBitset.length(); i++) {
+		// // System.out.print(peerBitset.get(i) ? 1 : 0 + " ");
+		// if (peerBitset.get(i) && "1002".equals(conn.getRemotePeerId()))
+		// LoggerUtil.getInstance().logDebug(conn.getRemotePeerId() + ": I have piece
+		// index: " + i);
+		// }
 		do {
 			if (sharedFile.isCompleteFile()) {
 				System.out.println("File received");
 				return Integer.MIN_VALUE;
 			}
 			requestPieceIndex = (int) (Math.random() * numberOfPieces);
+			// if ("1002".equals(conn.getRemotePeerId())) {
+			// LoggerUtil.getInstance().logDebug(requestPieceIndex + " ? " +
+			// peerBitset.get(requestPieceIndex));
+			// }
+			// LoggerUtil.getInstance().logDebug("" + requestPieceIndex);
 			// System.out.println("peerbitset: " + peerBitset + " connectionManager" +
 			// connectionManager);
-		} while (!peerBitset.get(requestPieceIndex) && !connectionManager.isRequested(requestPieceIndex)
-				&& isPieceAvailable(requestPieceIndex));
+			// LoggerUtil.getInstance().logDebug("Requested piece index" +
+			// requestPieceIndex);
+		} while (!peerBitset.get(requestPieceIndex) || connectionManager.isRequested(requestPieceIndex)
+				|| isPieceAvailable(requestPieceIndex));
 		conn.addRequestedPiece(requestPieceIndex);
 		return requestPieceIndex;
 	}

@@ -20,7 +20,7 @@ public class BitField extends Message {
 		BitSet filePieces = sharedFile.getFilePieces();
 		for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
 			if (filePieces.get(i)) {
-				content[i] = 1;
+				// content[i] = 1;
 				payload[i + 1] = 1;
 			}
 		}

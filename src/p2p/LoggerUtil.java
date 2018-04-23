@@ -117,13 +117,9 @@ public class LoggerUtil {
 		writeToFile(timestamp + "Peer " + peerId + " has downloaded the complete file.");
 	}
 
-	// public void logDebug(String str) {
-	// logger.debug(str);
-	// }
-
-	// public void logDebug(String message) {
-	// writeToFile(message);
-	// }
+	public void logDebug(String message) {
+		writeToFile(message);
+	}
 
 	public String getTime() {
 		return Calendar.getInstance().getTime() + ": ";
