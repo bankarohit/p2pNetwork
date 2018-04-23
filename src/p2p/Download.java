@@ -8,6 +8,7 @@ public class Download implements Runnable {
 	private Socket socket;
 	private DataInputStream in;
 	private SharedData sharedData;
+	private boolean isAlive;
 
 	// client thread initialization
 	public Download(Socket socket, String peerId, SharedData data) {
@@ -17,6 +18,7 @@ public class Download implements Runnable {
 	private void init(Socket socket, SharedData data) {
 		this.socket = socket;
 		sharedData = data;
+		isAlive = true;
 		try {
 			in = new DataInputStream(socket.getInputStream());
 		} catch (IOException e) {
@@ -37,13 +39,23 @@ public class Download implements Runnable {
 
 	protected void receiveMessage() {
 		// System.out.println("Receive started");
-		int messageLength = Integer.MIN_VALUE;
-		messageLength = receiveMessageLength();
-		byte[] payload = new byte[messageLength];
-		receiveMessagePayload(payload);
-		sharedData.addPayload(payload);
-		// System.out.println("Receive finished");
-		receiveMessage();
+		while (isAlive()) {
+			int messageLength = Integer.MIN_VALUE;
+			messageLength = receiveMessageLength();
+			if (!isAlive()) {
+				continue;
+			}
+			byte[] payload = new byte[messageLength];
+			receiveMessagePayload(payload);
+			sharedData.addPayload(payload);
+			// System.out.println("Receive finished");
+		}
+
+	}
+
+	private synchronized boolean isAlive() {
+		// TODO Auto-generated method stub
+		return isAlive;
 	}
 
 	private int receiveMessageLength() {
@@ -51,6 +63,7 @@ public class Download implements Runnable {
 		try {
 			len = in.readInt();
 		} catch (IOException e) {
+			// isAlive = false;
 			e.printStackTrace();
 		}
 		return len;

@@ -12,6 +12,7 @@ public class SharedData extends Thread {
 	private Connection conn;
 	private volatile boolean uploadHandshake;
 	private volatile boolean isHandshakeDownloaded;
+	private SharedFile sharedFile;
 
 	public boolean isHandshakeDownloaded() {
 		return isHandshakeDownloaded;
@@ -41,6 +42,7 @@ public class SharedData extends Thread {
 		conn = connection;
 		payloadQueue = new LinkedBlockingQueue<>();
 		isAlive = true;
+		sharedFile = SharedFile.getInstance();
 	}
 
 	public void setUpload(Upload value) {
@@ -74,7 +76,7 @@ public class SharedData extends Thread {
 		}
 	}
 
-	public BitSet getPeerBitSet() {
+	public synchronized BitSet getPeerBitSet() {
 		return peerBitset;
 	}
 
@@ -140,9 +142,9 @@ public class SharedData extends Thread {
 		return peerBitset.get(index);
 	}
 
-	private boolean isInterested() {
+	private synchronized boolean isInterested() {
 		for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
-			if (peerBitset.get(i) && !SharedFile.isPieceAvailable(i)) {
+			if (peerBitset.get(i) && !sharedFile.isPieceAvailable(i)) {
 				return true;
 			}
 		}
@@ -168,8 +170,8 @@ public class SharedData extends Thread {
 		} else {
 			messageType = messageManager.getType(payload[0]);
 		}
-		// System.out.println("Received Message: " + messageType + " from " +
-		// remotePeerId);
+		if (messageType != Message.Type.HANDSHAKE)
+			System.out.println("Received Message: " + messageType + " from " + remotePeerId);
 		switch (messageType) {
 		case CHOKE:
 			// clear requested pieces of this connection
@@ -218,13 +220,14 @@ public class SharedData extends Thread {
 			int pi = ByteBuffer.wrap(payload, 1, 4).getInt();
 			conn.addBytesDownloaded(payload.length);
 			// System.out.println("Received pieceindex & setting: " + pi);
-			SharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
+			sharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
 			responseMessageType = Message.Type.REQUEST;
 			conn.tellAllNeighbors(pi);
 			break;
 		case HANDSHAKE:
 			remotePeerId = Handshake.getId(payload);
 			conn.setPeerId(remotePeerId);
+			System.out.println("Received Message: " + messageType + " from " + remotePeerId);
 			if (!getUploadHandshake()) {
 				setUploadHandshake();
 				LoggerUtil.getInstance().logTcpConnectionFrom(host.getNetwork().getPeerId(), remotePeerId);
@@ -260,16 +263,21 @@ public class SharedData extends Thread {
 			// add to requested pieces
 			pieceIndex = getRequestPieceIndex();
 			if (pieceIndex == Integer.MIN_VALUE) {
-				SharedFile.writeToFile();
-				System.exit(0);
+				System.out.println("received file");
+				conn.close();
+				// System.exit(0);
 			}
-			conn.addRequestedPiece(pieceIndex);
 			// System.out.println("Requested piece: " + pieceIndex);
 			break;
 		case PIECE:
 			// get piece index from buffer
 			pieceIndex = ByteBuffer.wrap(buffer).getInt();
-			// System.out.println("Received request for piece " + pieceIndex);
+			if (pieceIndex == Integer.MIN_VALUE) {
+				System.out.println("Received file");
+				messageType = null;
+				isAlive = false;
+				conn.close();
+			}
 			break;
 		// CHOKE, UNCHOKE, HAVE, NOTINTERESTED types of messages will only be sent by
 		// connection manager
@@ -296,12 +304,14 @@ public class SharedData extends Thread {
 		int requestPieceIndex = 0;
 		int numberOfPieces = CommonProperties.getNumberOfPieces();
 		do {
-			if (SharedFile.isCompleteFile()) {
+			if (sharedFile.isCompleteFile()) {
+				System.out.println("File received");
 				return Integer.MIN_VALUE;
 			}
 			requestPieceIndex = (int) (Math.random() * numberOfPieces);
 		} while (!peerHasPiece(requestPieceIndex) && !conn.isRequested(requestPieceIndex)
-				&& SharedFile.isPieceAvailable(requestPieceIndex));
+				&& sharedFile.isPieceAvailable(requestPieceIndex));
+		conn.addRequestedPiece(requestPieceIndex);
 		return requestPieceIndex;
 	}
 }

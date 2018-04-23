@@ -5,13 +5,19 @@ import java.util.BitSet;
 public class BitField extends Message {
 
 	private static BitField bitfield = new BitField();
+	private SharedFile sharedFile;
 
 	private BitField() {
+		init();
+	}
+
+	private void init() {
 		type = 5;
-		BitSet filePieces = SharedFile.getFilePieces();
 		payload = new byte[CommonProperties.getNumberOfPieces() + 1];
-		payload[0] = type;
 		content = new byte[CommonProperties.getNumberOfPieces()];
+		sharedFile = SharedFile.getInstance();
+		payload[0] = type;
+		BitSet filePieces = sharedFile.getFilePieces();
 		for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
 			if (filePieces.get(i)) {
 				content[i] = 1;
@@ -26,6 +32,7 @@ public class BitField extends Message {
 
 	@Override
 	protected synchronized int getMessageLength() {
+		init();
 		return payload.length;
 	}
 

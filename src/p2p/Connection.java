@@ -1,5 +1,6 @@
 package p2p;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.util.BitSet;
 
@@ -21,15 +22,16 @@ public class Connection {
 		return upload;
 	}
 
-	public void addBytesDownloaded(long value) {
+	public synchronized void addBytesDownloaded(long value) {
 		bytesDownloaded += value;
 	}
 
-	public boolean isChoked() {
+	public synchronized boolean isChoked() {
 		return choked;
 	}
 
 	public Connection(Socket peerSocket) {
+		this.peerSocket = peerSocket;
 		sharedData = new SharedData(this);
 		upload = new Upload(peerSocket, sharedData);
 		download = new Download(peerSocket, sharedData);
@@ -39,6 +41,7 @@ public class Connection {
 	}
 
 	public Connection(Socket peerSocket, String peerId) {
+		this.peerSocket = peerSocket;
 		sharedData = new SharedData(this);
 		upload = new Upload(peerSocket, peerId, sharedData);
 		download = new Download(peerSocket, peerId, sharedData);
@@ -60,27 +63,37 @@ public class Connection {
 		upload.addMessage(messageLength, payload);
 	}
 
+	public void close() {
+		try {
+			System.out.println(peerSocket);
+			peerSocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public synchronized String getRemotePeerId() {
 		return remotePeerId;
 	}
 
-	public void tellAllNeighbors(int pieceIndex) {
+	public synchronized void tellAllNeighbors(int pieceIndex) {
 		connectionManager.tellAllNeighbors(pieceIndex);
 	}
 
-	protected boolean isRequested(int pieceIndex) {
+	protected synchronized boolean isRequested(int pieceIndex) {
 		return connectionManager.isRequested(pieceIndex);
 	}
 
-	protected void addRequestedPiece(int pieceIndex) {
+	protected synchronized void addRequestedPiece(int pieceIndex) {
 		connectionManager.addRequestedPiece(this, pieceIndex);
 	}
 
-	public void addInterestedConnection() {
+	public synchronized void addInterestedConnection() {
 		connectionManager.addInterestedConnection(remotePeerId, this);
 	}
 
-	public void addNotInterestedConnection() {
+	public synchronized void addNotInterestedConnection() {
 		connectionManager.addNotInterestedConnection(remotePeerId, this);
 	}
 
@@ -90,10 +103,9 @@ public class Connection {
 
 	public void setPeerId(String value) {
 		remotePeerId = value;
-
 	}
 
-	public void removeRequestedPiece() {
+	public synchronized void removeRequestedPiece() {
 		connectionManager.removeRequestedPiece(this);
 	}
 

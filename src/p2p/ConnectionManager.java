@@ -22,6 +22,7 @@ public class ConnectionManager {
 	private int m = CommonProperties.getOptimisticUnchokingInterval();
 	private int p = CommonProperties.getUnchokingInterval();
 	private int n = LoadPeerList.numberOfPeers();
+	private SharedFile sharedFile;
 	// private int maxConnections = k + 1;
 	// private int totalConnections = 0;
 	private BroadcastThread broadcaster;
@@ -33,6 +34,7 @@ public class ConnectionManager {
 				(a, b) -> (int) a.getBytesDownloaded() - (int) b.getBytesDownloaded());
 		requestedPieces = new HashMap<>();
 		broadcaster = BroadcastThread.getInstance();
+		sharedFile = SharedFile.getInstance();
 		monitor();
 	}
 
@@ -42,10 +44,13 @@ public class ConnectionManager {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (preferredNeighbors.size() > k) {
-					Connection conn = preferredNeighbors.poll();
-					broadcaster.addMessage(new Object[] { conn, Message.Type.CHOKE, Integer.MIN_VALUE });
-					// System.out.println("Choking:" + conn.getRemotePeerId());
+				synchronized (interested) {
+					if (preferredNeighbors.size() > k) {
+						Connection conn = preferredNeighbors.poll();
+						interested.put(conn.getRemotePeerId(), conn);
+						broadcaster.addMessage(new Object[] { conn, Message.Type.CHOKE, Integer.MIN_VALUE });
+						// System.out.println("Choking:" + conn.getRemotePeerId());
+					}
 				}
 			}
 		}, new Date(), p * 1000);
@@ -53,11 +58,12 @@ public class ConnectionManager {
 		new Timer().schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (interested.size() > 0 && preferredNeighbors.size() > k) {
+				if (interested.size() > 0) {
 					synchronized (interested) {
 						ArrayList<Connection> temp = new ArrayList<>(interested.values());
 						int randomNeighbor = (int) (Math.random() * temp.size());
 						Connection conn = temp.get(randomNeighbor);
+						interested.remove(conn.getRemotePeerId());
 						broadcaster.addMessage(new Object[] { conn, Message.Type.UNCHOKE, Integer.MIN_VALUE });
 						preferredNeighbors.add(conn);
 						// System.out.println("Optimistically unchoking:" + conn.getRemotePeerId());
@@ -82,8 +88,8 @@ public class ConnectionManager {
 		}
 		for (Connection conn : preferredNeighbors) {
 			broadcaster.addMessage(new Object[] { conn, Message.Type.HAVE, pieceIndex });
-			BitSet myBitSet = SharedFile.getFilePieces();
-			if (conn.getPeerBitSet().equals(myBitSet)) {
+			BitSet peerBitSet = conn.getPeerBitSet();
+			if (sharedFile.isSubset(peerBitSet)) {
 				broadcaster.addMessage(new Object[] { conn, Message.Type.NOTINTERESTED, Integer.MIN_VALUE });
 			}
 		}
@@ -138,7 +144,6 @@ public class ConnectionManager {
 
 	public synchronized void addRequestedPiece(Connection conn, int pieceIndex) {
 		requestedPieces.put(conn, pieceIndex);
-
 	}
 
 	protected synchronized void removeRequestedPiece(Connection conn) {

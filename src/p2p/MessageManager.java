@@ -6,9 +6,10 @@ import p2p.Message.Type;
 
 public class MessageManager {
 	private static MessageManager messageManager = new MessageManager();
+	private SharedFile sharedFile;
 
 	private MessageManager() {
-
+		sharedFile = SharedFile.getInstance();
 	}
 
 	public static synchronized MessageManager getInstance() {
@@ -55,7 +56,7 @@ public class MessageManager {
 			BitField bitfield = BitField.getInstance();
 			return bitfield.getMessageLength();
 		case PIECE:
-			int payloadLength = 5 + SharedFile.getPiece(pieceIndex).length;
+			int payloadLength = 5 + sharedFile.getPiece(pieceIndex).length;
 			return payloadLength;
 		case HANDSHAKE:
 			return 32;
@@ -90,7 +91,7 @@ public class MessageManager {
 			System.arraycopy(index, 0, payload, 1, 4);
 			break;
 		case PIECE:
-			byte[] piece = SharedFile.getPiece(pieceIndex);
+			byte[] piece = sharedFile.getPiece(pieceIndex);
 			int pieceSize = piece.length;
 			int totalLength = 5 + pieceSize;
 			payload = new byte[totalLength];

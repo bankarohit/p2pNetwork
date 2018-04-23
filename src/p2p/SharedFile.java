@@ -4,24 +4,49 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.nio.channels.FileChannel;
+import java.nio.file.StandardOpenOption;
 import java.util.BitSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 
-public class SharedFile {
+public class SharedFile extends Thread {
 	private static ConcurrentHashMap<Integer, byte[]> file;
-	public static BitSet filePieces;
+	private static BitSet filePieces;
+	private static FileChannel writeFileChannel;
+	private static int receivedFileSize;
+	private LinkedBlockingQueue<byte[]> fileQueue;
+	private static SharedFile sharedFile = new SharedFile();
+	private static boolean firstTime;
+
+	private SharedFile() {
+		fileQueue = new LinkedBlockingQueue<>();
+		receivedFileSize = 0;
+	}
+
+	public static synchronized SharedFile getInstance() {
+		return sharedFile;
+	}
 
 	static {
 		file = new ConcurrentHashMap<Integer, byte[]>();
 		filePieces = new BitSet(CommonProperties.getNumberOfPieces());
+		try {
+			File createdFile = new File(Constants.COMMON_PROPERTIES_CREATED_FILE_PATH + peerProcessMain.getId()
+					+ File.separatorChar + CommonProperties.getFileName());
+			createdFile.getParentFile().mkdirs(); // Will create parent directories if not exists
+			createdFile.createNewFile();
+			writeFileChannel = FileChannel.open(createdFile.toPath(), StandardOpenOption.WRITE);
+		} catch (IOException e) {
+			System.out.println("Failed to create new file while receiving the file from host peer");
+			e.printStackTrace();
+		}
+		sharedFile.start();
 	}
 
 	public static void splitFile() {
-
 		File filePtr = new File(Constants.COMMON_PROPERTIES_FILE_PATH + CommonProperties.getFileName());
 		FileInputStream fis = null;
 		DataInputStream dis = null;
@@ -50,7 +75,6 @@ public class SharedFile {
 			}
 
 		} catch (FileNotFoundException e) {
-
 			System.out.println("Error reading common.cfg file");
 			e.printStackTrace();
 		} finally {
@@ -62,84 +86,70 @@ public class SharedFile {
 				System.out.println("Error while closing fileinputstream after reading file");
 			}
 		}
-		// System.out.println("SharedFile.splitFile() - Filepieces cardinality: " +
-		// filePieces.length());
-		// System.out.println("SharedFile.splitFile() - Filepieces 0 index: " +
-		// filePieces.get(0));
 	}
 
-	public static void writeToFile() {
-
-		File createdFile = null;
-		try {
-			createdFile = new File(
-					Constants.COMMON_PROPERTIES_CREATED_FILE_PATH + Peer.getInstance().getNetwork().getPeerId()
-							+ File.separatorChar + CommonProperties.getFileName());
-			createdFile.getParentFile().mkdirs(); // Will create parent directories if not exists
-			createdFile.createNewFile();
-		} catch (IOException e) {
-			System.out.println("Failed to create new file while receiving the file from host peer");
-			e.printStackTrace();
-		}
-		FileOutputStream fos = null;
-		try {
-			fos = new FileOutputStream(createdFile, false);
-			for (int i = 0; i < file.size(); i++) {
-				try {
-					fos.write(file.get(i));
-					// System.out.println(file.get(i).hashCode());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				fos.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public static byte[] getPiece(int index) {
+	public synchronized byte[] getPiece(int index) {
 		return file.get(index);
 	}
 
-	public static synchronized int getNextMissingPiece() {
-		return filePieces.nextClearBit(0);
+	@Override
+	public void run() {
+		while (true) {
+			try {
+				byte[] payload = fileQueue.take();
+				int pieceIndex = ByteBuffer.wrap(payload, 0, 4).getInt();
+				writeFileChannel.position(pieceIndex * 16384);
+				System.out.println("Writing piece: " + pieceIndex);
+				System.out.println(
+						"Bytes written: " + writeFileChannel.write(ByteBuffer.wrap(payload, 4, payload.length - 4)));
+				if (isCompleteFile()) {
+					System.exit(0);
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
 	}
 
-	public static synchronized void hasFile() {
-		filePieces.flip(0, filePieces.size());
+	public synchronized void setPiece(byte[] payload) {
+		try {
+			fileQueue.put(payload);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		filePieces.set(ByteBuffer.wrap(payload, 0, 4).getInt());
+		setReceivedFileSize();
 	}
 
-	public static synchronized void setPiece(byte[] payload) {
-		int pieceIndex = ByteBuffer.wrap(payload, 0, 4).getInt();
-		// System.out.println("Setting pieceIndex: " + pieceIndex);
-		filePieces.set(pieceIndex);
-		file.put(pieceIndex, Arrays.copyOfRange(payload, 4, payload.length));
-
-	}
-
-	public static synchronized boolean isPieceAvailable(int index) {
+	public synchronized boolean isPieceAvailable(int index) {
 		return filePieces.get(index);
 	}
 
-	public static synchronized boolean isCompleteFile() {
-		return SharedFile.getFileSize() == CommonProperties.getNumberOfPieces();
+	public synchronized boolean isCompleteFile() {
+		return getReceivedFileSize() == CommonProperties.getNumberOfPieces();
 	}
 
-	public static synchronized int getFileSize() {
-		return file.size();
+	private synchronized int getReceivedFileSize() {
+		return receivedFileSize;
 	}
 
-	public static synchronized BitSet getFilePieces() {
-		// TODO Auto-generated method stub
+	private synchronized int setReceivedFileSize() {
+		return receivedFileSize++;
+	}
+
+	public synchronized boolean isSubset(BitSet peerBitSet) {
+		for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
+			if (!peerBitSet.get(i) && isPieceAvailable(i)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	protected BitSet getFilePieces() {
 		return filePieces;
 	}
 

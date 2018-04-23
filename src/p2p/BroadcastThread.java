@@ -22,9 +22,10 @@ public class BroadcastThread extends Thread {
 		pieceIndex = Integer.MIN_VALUE;
 	}
 
+	// TODO: Don't start broadacaster in getInstance()
 	protected static synchronized BroadcastThread getInstance() {
-		broadcaster.start();
 		System.out.println("Broadcaster started");
+		broadcaster.start();
 		return broadcaster;
 	}
 

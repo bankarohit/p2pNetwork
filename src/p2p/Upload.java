@@ -3,6 +3,7 @@ package p2p;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Upload implements Runnable {
@@ -46,6 +47,8 @@ public class Upload implements Runnable {
 				byte[] payload = uploadPayloadQueue.take();
 				out.write(payload);
 				out.flush();
+			} catch (SocketException e) {
+				isAlive = false;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
