@@ -105,6 +105,10 @@ public class SharedData extends Thread {
 
 	public synchronized void updatePeerBitset(int index) {
 		peerBitset.set(index);
+		//Banka
+				if( peerBitset.cardinality() == CommonProperties.getNumberOfPieces() ) {
+					ConnectionManager.getInstance().addToPeersWithFullFile(remotePeerId);
+				}
 	}
 
 	protected void processPayload(byte[] payload) {

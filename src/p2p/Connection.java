@@ -113,4 +113,8 @@ public class Connection {
 		// TODO Auto-generated method stub
 		connectionManager.addAllConnections(this);
 	}
+	
+	public synchronized void setDownloadedbytes(int n) {
+			bytesDownloaded = n;
+		}
 }

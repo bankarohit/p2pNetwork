@@ -19,6 +19,8 @@ public class ConnectionManager {
 	// private ArrayList<String> interestedPeerIds;
 	private HashMap<Connection, Integer> requestedPieces;
 	private PriorityQueue<Connection> preferredNeighbors;
+	//Banka
+	public HashSet<String> peersWithFullFile = new HashSet<String>();
 	private int k = CommonProperties.getNumberOfPreferredNeighbors();
 	private int m = CommonProperties.getOptimisticUnchokingInterval();
 	private int p = CommonProperties.getUnchokingInterval();
@@ -49,6 +51,10 @@ public class ConnectionManager {
 				synchronized (interested) {
 					if (preferredNeighbors.size() > k) {
 						Connection conn = preferredNeighbors.poll();
+						// Banka
+						for( Connection connT : preferredNeighbors ) {
+							connT.setDownloadedbytes(0);
+						}
 						interested.put(conn.getRemotePeerId(), conn);
 						broadcaster.addMessage(new Object[] { conn, Message.Type.CHOKE, Integer.MIN_VALUE });
 						LoggerUtil.getInstance().logChangePreferredNeighbors(getTime(), peerProcessMain.getId(),
@@ -106,6 +112,8 @@ public class ConnectionManager {
 	 */
 	public synchronized void addInterestedConnection(String peerId, Connection connection) {
 		if (preferredNeighbors.size() < k && !preferredNeighbors.contains(connection)) {
+			//Banka
+			connection.setDownloadedbytes(0);
 			preferredNeighbors.add(connection);
 			broadcaster.addMessage(new Object[] { connection, Message.Type.UNCHOKE, Integer.MIN_VALUE });
 		} else {
@@ -163,5 +171,9 @@ public class ConnectionManager {
 		// TODO Auto-generated method stub
 		allConnections.add(connection);
 	}
-
+	
+	//Banka
+		public void addToPeersWithFullFile(String str) {
+			peersWithFullFile.add(str);
+		}
 }
