@@ -3,18 +3,12 @@ package p2p;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class BroadcastThread extends Thread {
-	private volatile LinkedBlockingQueue<Object[]> queue;
+	private LinkedBlockingQueue<Object[]> queue;
 	private MessageManager messageManager;
 	private Connection conn;
 	private Message.Type messageType;
 	private int pieceIndex;
 	private static BroadcastThread broadcaster;
-
-	static {
-		broadcaster = new BroadcastThread();
-		System.out.println("Broadcaster started");
-		broadcaster.start();
-	}
 
 	private BroadcastThread() {
 		queue = new LinkedBlockingQueue<>();
@@ -25,6 +19,10 @@ public class BroadcastThread extends Thread {
 	}
 
 	protected static synchronized BroadcastThread getInstance() {
+		if (broadcaster == null) {
+			broadcaster = new BroadcastThread();
+			broadcaster.start();
+		}
 		return broadcaster;
 	}
 
@@ -60,7 +58,6 @@ public class BroadcastThread extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("Broadcaster: Retrieved message from queue");
 		return data;
 	}
 

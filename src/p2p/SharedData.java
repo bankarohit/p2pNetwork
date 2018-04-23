@@ -1,6 +1,5 @@
 package p2p;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -107,9 +106,9 @@ public class SharedData extends Thread {
 				peerBitset.set(i - 1);
 			}
 		}
-		for (int i = 1; i < peerBitset.length(); i++) {
-			System.out.print(peerBitset.get(i) ? 1 : 0 + " ");
-		}
+		// for (int i = 1; i < peerBitset.length(); i++) {
+		// System.out.print(peerBitset.get(i) ? 1 : 0 + " ");
+		// }
 	}
 
 	public synchronized void updatePeerBitset(int index) {
@@ -121,7 +120,7 @@ public class SharedData extends Thread {
 		Message.Type responseMessageType = null;
 		int pieceIndex = Integer.MIN_VALUE;
 		System.out.println("Received message: " + messageType);
-		LoggerUtil.getInstance().logDebug("Received message: " + messageType);
+		// LoggerUtil.getInstance().logDebug("Received message: " + messageType);
 		switch (messageType) {
 		case CHOKE:
 			// clear requested pieces of this connection
@@ -162,12 +161,12 @@ public class SharedData extends Thread {
 			// update peer bitset
 			// send interested/not interested
 			setPeerBitset(payload);
-			try {
-				LoggerUtil.getInstance().logDebug(new String(payload, "UTF-8"));
-			} catch (UnsupportedEncodingException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			// try {
+			// LoggerUtil.getInstance().logDebug(new String(payload, "UTF-8"));
+			// } catch (UnsupportedEncodingException e1) {
+			// // TODO Auto-generated catch block
+			// e1.printStackTrace();
+			// }
 			responseMessageType = getInterestedNotInterested();
 			break;
 		case REQUEST:
@@ -176,7 +175,7 @@ public class SharedData extends Thread {
 			byte[] content = new byte[4];
 			System.arraycopy(payload, 1, content, 0, 4);
 			pieceIndex = ByteBuffer.wrap(content).getInt();
-			System.out.println(pieceIndex);
+			// System.out.println(pieceIndex);
 			if (pieceIndex == Integer.MIN_VALUE) {
 				System.out.println("received file");
 				try {
@@ -213,12 +212,13 @@ public class SharedData extends Thread {
 		case HANDSHAKE:
 			remotePeerId = Handshake.getId(payload);
 			conn.setPeerId(remotePeerId);
-			System.out.println("Handshake: " + responseMessageType);
+			conn.addAllConnections();
+			// System.out.println("Handshake: " + responseMessageType);
 			if (!getUploadHandshake()) {
 				setUploadHandshake();
 				LoggerUtil.getInstance().logTcpConnectionFrom(host.getNetwork().getPeerId(), remotePeerId);
 				broadcaster.addMessage(new Object[] { conn, Message.Type.HANDSHAKE, Integer.MIN_VALUE });
-				System.out.println("Added " + messageType + " to broadcaster");
+				// System.out.println("Added " + messageType + " to broadcaster");
 			}
 			if (sharedFile.hasAnyPieces()) {
 				responseMessageType = Message.Type.BITFIELD;
@@ -228,7 +228,8 @@ public class SharedData extends Thread {
 		}
 
 		if (null != responseMessageType) {
-			System.out.println("Shared data if: Added " + responseMessageType + " to broadcaster");
+			// System.out.println("Shared data if: Added " + responseMessageType + " to
+			// broadcaster");
 			broadcaster.addMessage(new Object[] { conn, responseMessageType, pieceIndex });
 		}
 	}

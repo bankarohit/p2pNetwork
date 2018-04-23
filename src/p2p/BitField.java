@@ -4,7 +4,7 @@ import java.util.BitSet;
 
 public class BitField extends Message {
 
-	private static BitField bitfield = new BitField();
+	private static BitField bitfield;
 	private SharedFile sharedFile;
 
 	private BitField() {
@@ -27,6 +27,9 @@ public class BitField extends Message {
 	}
 
 	public synchronized static BitField getInstance() {
+		if (bitfield == null) {
+			bitfield = new BitField();
+		}
 		return bitfield;
 	}
 

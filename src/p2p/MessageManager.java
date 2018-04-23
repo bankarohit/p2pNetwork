@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import p2p.Message.Type;
 
 public class MessageManager {
-	private static MessageManager messageManager = new MessageManager();
+	private static MessageManager messageManager;
 	private SharedFile sharedFile;
 
 	private MessageManager() {
@@ -13,6 +13,9 @@ public class MessageManager {
 	}
 
 	public static synchronized MessageManager getInstance() {
+		if (messageManager == null) {
+			messageManager = new MessageManager();
+		}
 		return messageManager;
 	}
 

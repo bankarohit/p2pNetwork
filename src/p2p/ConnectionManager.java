@@ -12,7 +12,8 @@ import java.util.TimerTask;
 
 public class ConnectionManager {
 
-	private static ConnectionManager connectionManager = new ConnectionManager();
+	private static ConnectionManager connectionManager;
+	private HashSet<Connection> allConnections;
 	private HashMap<String, Connection> interested; // interested but choked
 	private HashSet<Connection> notInterested;
 	// private ArrayList<String> interestedPeerIds;
@@ -35,6 +36,7 @@ public class ConnectionManager {
 		requestedPieces = new HashMap<>();
 		broadcaster = BroadcastThread.getInstance();
 		sharedFile = SharedFile.getInstance();
+		allConnections = new HashSet<>();
 		monitor();
 	}
 
@@ -79,6 +81,9 @@ public class ConnectionManager {
 	}
 
 	public static synchronized ConnectionManager getInstance() {
+		if (connectionManager == null) {
+			connectionManager = new ConnectionManager();
+		}
 		return connectionManager;
 	}
 
@@ -90,22 +95,8 @@ public class ConnectionManager {
 		// preferredNeighbors.size());
 		// LoggerUtil.getInstance().logDebug("Not Interested number = " +
 		// notInterested.size());
-		for (String peerId : interested.keySet()) {
-			broadcaster.addMessage(new Object[] { interested.get(peerId), Message.Type.HAVE, pieceIndex });
-		}
-		for (Connection conn : notInterested) {
+		for (Connection conn : allConnections) {
 			broadcaster.addMessage(new Object[] { conn, Message.Type.HAVE, pieceIndex });
-		}
-		for (Connection conn : preferredNeighbors) {
-			broadcaster.addMessage(new Object[] { conn, Message.Type.HAVE, pieceIndex });
-			LoggerUtil.getInstance().logDebug("Sent HAVE to " + conn.remotePeerId);
-			// BitSet peerBitSet = conn.getPeerBitSet();
-			// LoggerUtil.getInstance().logDebug(sharedFile.isSubset(peerBitSet) ? "true" :
-			// "false");
-			// if (sharedFile.isSubset(peerBitSet)) {
-			// broadcaster.addMessage(new Object[] { conn, Message.Type.NOTINTERESTED,
-			// Integer.MIN_VALUE });
-			// }
 		}
 	}
 
@@ -166,6 +157,11 @@ public class ConnectionManager {
 
 	public String getTime() {
 		return Calendar.getInstance().getTime() + ": ";
+	}
+
+	public synchronized void addAllConnections(Connection connection) {
+		// TODO Auto-generated method stub
+		allConnections.add(connection);
 	}
 
 }

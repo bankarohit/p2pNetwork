@@ -65,7 +65,6 @@ public class Connection {
 
 	public void close() {
 		try {
-			System.out.println(peerSocket);
 			peerSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -108,5 +107,10 @@ public class Connection {
 	public synchronized BitSet getPeerBitSet() {
 		// TODO Auto-generated method stub
 		return sharedData.getPeerBitSet();
+	}
+
+	public synchronized void addAllConnections() {
+		// TODO Auto-generated method stub
+		connectionManager.addAllConnections(this);
 	}
 }

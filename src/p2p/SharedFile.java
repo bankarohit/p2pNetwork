@@ -19,12 +19,12 @@ public class SharedFile extends Thread {
 	private static int receivedFileSize;
 	private LinkedBlockingQueue<byte[]> fileQueue;
 	private static SharedFile sharedFile;
-	private ConnectionManager connectionManager;
+	// private ConnectionManager connectionManager;
 
 	private SharedFile() {
 		fileQueue = new LinkedBlockingQueue<>();
 		receivedFileSize = 0;
-		connectionManager = ConnectionManager.getInstance();
+		// connectionManager = ConnectionManager.getInstance();
 	}
 
 	public static synchronized SharedFile getInstance() {
@@ -154,6 +154,7 @@ public class SharedFile extends Thread {
 	}
 
 	protected synchronized int getRequestPieceIndex(Connection conn) {
+		ConnectionManager connectionManager = ConnectionManager.getInstance();
 		BitSet peerBitset = conn.getPeerBitSet();
 		int requestPieceIndex = 0;
 		int numberOfPieces = CommonProperties.getNumberOfPieces();
@@ -163,6 +164,8 @@ public class SharedFile extends Thread {
 				return Integer.MIN_VALUE;
 			}
 			requestPieceIndex = (int) (Math.random() * numberOfPieces);
+			// System.out.println("peerbitset: " + peerBitset + " connectionManager" +
+			// connectionManager);
 		} while (!peerBitset.get(requestPieceIndex) && !connectionManager.isRequested(requestPieceIndex)
 				&& isPieceAvailable(requestPieceIndex));
 		conn.addRequestedPiece(requestPieceIndex);
