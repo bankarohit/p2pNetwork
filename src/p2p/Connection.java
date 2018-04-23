@@ -81,10 +81,6 @@ public class Connection {
 		connectionManager.tellAllNeighbors(pieceIndex);
 	}
 
-	protected synchronized boolean isRequested(int pieceIndex) {
-		return connectionManager.isRequested(pieceIndex);
-	}
-
 	protected synchronized void addRequestedPiece(int pieceIndex) {
 		connectionManager.addRequestedPiece(this, pieceIndex);
 	}

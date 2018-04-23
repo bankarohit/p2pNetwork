@@ -19,11 +19,12 @@ public class SharedFile extends Thread {
 	private static int receivedFileSize;
 	private LinkedBlockingQueue<byte[]> fileQueue;
 	private static SharedFile sharedFile = new SharedFile();
-	private static boolean firstTime;
+	private ConnectionManager connectionManager;
 
 	private SharedFile() {
 		fileQueue = new LinkedBlockingQueue<>();
 		receivedFileSize = 0;
+		connectionManager = ConnectionManager.getInstance();
 	}
 
 	public static synchronized SharedFile getInstance() {
@@ -114,14 +115,14 @@ public class SharedFile extends Thread {
 	}
 
 	public synchronized void setPiece(byte[] payload) {
+		filePieces.set(ByteBuffer.wrap(payload, 0, 4).getInt());
+		setReceivedFileSize();
 		try {
 			fileQueue.put(payload);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		filePieces.set(ByteBuffer.wrap(payload, 0, 4).getInt());
-		setReceivedFileSize();
 	}
 
 	public synchronized boolean isPieceAvailable(int index) {
@@ -147,6 +148,22 @@ public class SharedFile extends Thread {
 			}
 		}
 		return false;
+	}
+
+	protected synchronized int getRequestPieceIndex(Connection conn) {
+		BitSet peerBitset = conn.getPeerBitSet();
+		int requestPieceIndex = 0;
+		int numberOfPieces = CommonProperties.getNumberOfPieces();
+		do {
+			if (sharedFile.isCompleteFile()) {
+				System.out.println("File received");
+				return Integer.MIN_VALUE;
+			}
+			requestPieceIndex = (int) (Math.random() * numberOfPieces);
+		} while (!peerBitset.get(requestPieceIndex) && !connectionManager.isRequested(requestPieceIndex)
+				&& isPieceAvailable(requestPieceIndex));
+		conn.addRequestedPiece(requestPieceIndex);
+		return requestPieceIndex;
 	}
 
 	protected BitSet getFilePieces() {

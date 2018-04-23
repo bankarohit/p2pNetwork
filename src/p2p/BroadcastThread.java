@@ -12,6 +12,8 @@ public class BroadcastThread extends Thread {
 
 	static {
 		broadcaster = new BroadcastThread();
+		System.out.println("Broadcaster started");
+		broadcaster.start();
 	}
 
 	private BroadcastThread() {
@@ -22,10 +24,7 @@ public class BroadcastThread extends Thread {
 		pieceIndex = Integer.MIN_VALUE;
 	}
 
-	// TODO: Don't start broadacaster in getInstance()
 	protected static synchronized BroadcastThread getInstance() {
-		System.out.println("Broadcaster started");
-		broadcaster.start();
 		return broadcaster;
 	}
 
@@ -57,6 +56,7 @@ public class BroadcastThread extends Thread {
 		Object[] data = null;
 		try {
 			data = queue.take();
+			System.out.println("Queue size: " + queue.size());
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
