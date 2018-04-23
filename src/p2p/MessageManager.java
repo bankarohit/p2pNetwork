@@ -59,6 +59,7 @@ public class MessageManager {
 			BitField bitfield = BitField.getInstance();
 			return bitfield.getMessageLength();
 		case PIECE:
+			System.out.println("Shared file" + sharedFile);
 			int payloadLength = 5 + sharedFile.getPiece(pieceIndex).length;
 			return payloadLength;
 		case HANDSHAKE:

@@ -16,7 +16,6 @@ public class SharedData extends Thread {
 	private SharedFile sharedFile;
 	private BroadcastThread broadcaster;
 
-	private MessageManager messageManager = MessageManager.getInstance();
 	private Peer host = Peer.getInstance();
 	int i = 0;
 	private LinkedBlockingQueue<byte[]> payloadQueue;
@@ -252,6 +251,7 @@ public class SharedData extends Thread {
 	}
 
 	private Message.Type getMessageType(byte type) {
+		MessageManager messageManager = MessageManager.getInstance();
 		if (!isHandshakeDownloaded()) {
 			setHandshakeDownloaded();
 			return Message.Type.HANDSHAKE;
