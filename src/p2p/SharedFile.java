@@ -132,7 +132,7 @@ public class SharedFile extends Thread {
 		return getReceivedFileSize() == CommonProperties.getNumberOfPieces();
 	}
 
-	private synchronized int getReceivedFileSize() {
+	protected synchronized int getReceivedFileSize() {
 		return receivedFileSize;
 	}
 

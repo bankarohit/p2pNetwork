@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Iterator;
+import java.util.PriorityQueue;
 
 public class LoggerUtil {
 
@@ -52,64 +53,68 @@ public class LoggerUtil {
 
 	// [Time]: Peer [peer_ID] has the preferred neighbors [preferred neighbor ID
 	// list].
-	public void logChangePreferredNeighbors(String peerId, List<Peer> peers) {
+	public void logChangePreferredNeighbors(String timestamp, String peerId, PriorityQueue<Connection> peers) {
 		StringBuilder log = new StringBuilder();
-		log.append(getTime());
+		log.append(timestamp);
 		log.append("Peer " + peerId + " has the preferred neighbors ");
 		String prefix = "";
-		for (Peer p : peers) {
+		Iterator<Connection> iter = peers.iterator();
+		while (iter.hasNext()) {
 			log.append(prefix);
 			prefix = ", ";
-			log.append(p.getNetwork().getPeerId());
+			log.append(iter.next().getRemotePeerId());
 		}
 		writeToFile(log.toString() + ".");
 	}
 
 	// [Time]: Peer [peer_ID] has the optimistically unchoked neighbor
 	// [optimistically unchoked neighbor ID].
-	public void logOptimisticallyUnchokeNeighbor(String source, String unchokedNeighbor) {
+	public void logOptimisticallyUnchokeNeighbor(String timestamp, String source, String unchokedNeighbor) {
 		writeToFile(
-				getTime() + "Peer " + source + " has the optimistically unchoked neighbor " + unchokedNeighbor + ".");
+				timestamp + "Peer " + source + " has the optimistically unchoked neighbor " + unchokedNeighbor + ".");
 	}
 
 	// [Time]: Peer [peer_ID 1] is unchoked by [peer_ID 2].
-	public void logUnchokingNeighbor(String peerId1, String peerId2) {
-		writeToFile(getTime() + "Peer " + peerId1 + " is unchoked by " + peerId2 + ".");
+	public void logUnchokingNeighbor(String timestamp, String peerId1, String peerId2) {
+		writeToFile(timestamp + "Peer " + peerId1 + " is unchoked by " + peerId2 + ".");
 	}
 
 	// [Time]: Peer [peer_ID 1] is choked by [peer_ID 2].
-	public void logChokingNeighbor(String peerId1, String peerId2) {
-		writeToFile(getTime() + "Peer " + peerId1 + " is choked by " + peerId2 + ".");
+	public void logChokingNeighbor(String timestamp, String peerId1, String peerId2) {
+		writeToFile(timestamp + "Peer " + peerId1 + " is choked by " + peerId2 + ".");
 	}
 
 	// [Time]: Peer [peer_ID 1] received the ‘have’ message from [peer_ID 2] for
 	// the piece [piece index].
-	public void logReceivedHaveMessage(String to, String from, int pieceIndex) {
-		writeToFile(getTime() + "Peer " + to + " received the 'have' message from " + from + " for the piece "
+	public void logReceivedHaveMessage(String timestamp, String to, String from, int pieceIndex) {
+		writeToFile(timestamp + "Peer " + to + " received the 'have' message from " + from + " for the piece "
 				+ pieceIndex + ".");
 	}
 
 	// [Time]: Peer [peer_ID 1] received the ‘interested’ message from [peer_ID
 	// 2].
-	public void logReceivedInterestedMessage(String to, String from) {
-		writeToFile(getTime() + "Peer " + to + " received the 'interested' message from " + from + ".");
+	public void logReceivedInterestedMessage(String timestamp, String to, String from) {
+		writeToFile(timestamp + "Peer " + to + " received the 'interested' message from " + from + ".");
 	}
 
 	// [Time]: Peer [peer_ID 1] received the ‘not interested’ message from
 	// [peer_ID 2].
-	public void logReceivedNotInterestedMessage(String to, String from) {
-		writeToFile(getTime() + "Peer " + to + " received the 'not interested' message from " + from + ".");
+	public void logReceivedNotInterestedMessage(String timestamp, String to, String from) {
+		writeToFile(timestamp + "Peer " + to + " received the 'not interested' message from " + from + ".");
 	}
 
 	// [Time]: Peer [peer_ID 1] has downloaded the piece [piece index] from
 	// [peer_ID 2].
-	public void logDownloadedPiece(String to, String from, int pieceIndex) {
-		writeToFile(getTime() + "Peer " + to + " has downloaded the piece " + pieceIndex + " from " + from);
+	public void logDownloadedPiece(String timestamp, String to, String from, int pieceIndex, int numberOfPieces) {
+		String message = timestamp + "Peer " + to + " has downloaded the piece " + pieceIndex + " from " + from + ".";
+		message += "Now the number of pieces it has is " + numberOfPieces;
+		writeToFile(message);
+
 	}
 
 	// [Time]: Peer [peer_ID] has downloaded the complete file.
-	public void logFinishedDownloading(String peerId) {
-		writeToFile(getTime() + "Peer " + peerId + " has downloaded the complete file.");
+	public void logFinishedDownloading(String timestamp, String peerId) {
+		writeToFile(timestamp + "Peer " + peerId + " has downloaded the complete file.");
 	}
 
 	// public void logDebug(String str) {

@@ -3,6 +3,7 @@ package p2p;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,6 +50,8 @@ public class ConnectionManager {
 						Connection conn = preferredNeighbors.poll();
 						interested.put(conn.getRemotePeerId(), conn);
 						broadcaster.addMessage(new Object[] { conn, Message.Type.CHOKE, Integer.MIN_VALUE });
+						LoggerUtil.getInstance().logChangePreferredNeighbors(getTime(), peerProcessMain.getId(),
+								preferredNeighbors);
 						// System.out.println("Choking:" + conn.getRemotePeerId());
 					}
 				}
@@ -65,6 +68,8 @@ public class ConnectionManager {
 						Connection conn = temp.get(randomNeighbor);
 						interested.remove(conn.getRemotePeerId());
 						broadcaster.addMessage(new Object[] { conn, Message.Type.UNCHOKE, Integer.MIN_VALUE });
+						LoggerUtil.getInstance().logOptimisticallyUnchokeNeighbor(getTime(), peerProcessMain.getId(),
+								conn.getRemotePeerId());
 						preferredNeighbors.add(conn);
 						// System.out.println("Optimistically unchoking:" + conn.getRemotePeerId());
 					}
@@ -148,6 +153,10 @@ public class ConnectionManager {
 
 	protected synchronized void removeRequestedPiece(Connection conn) {
 		requestedPieces.remove(conn);
+	}
+
+	public String getTime() {
+		return Calendar.getInstance().getTime() + ": ";
 	}
 
 }

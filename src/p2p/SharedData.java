@@ -3,6 +3,7 @@ package p2p;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Calendar;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class SharedData extends Thread {
@@ -175,20 +176,26 @@ public class SharedData extends Thread {
 		switch (messageType) {
 		case CHOKE:
 			// clear requested pieces of this connection
+			LoggerUtil.getInstance().logChokingNeighbor(getTime(), peerProcessMain.getId(), conn.getRemotePeerId());
 			conn.removeRequestedPiece();
 			responseMessageType = null;
 			break;
 		case UNCHOKE:
 			// respond with request
+			LoggerUtil.getInstance().logUnchokingNeighbor(getTime(), peerProcessMain.getId(), conn.getRemotePeerId());
 			responseMessageType = Message.Type.REQUEST;
 			break;
 		case INTERESTED:
 			// add to interested connections
+			LoggerUtil.getInstance().logReceivedInterestedMessage(getTime(), peerProcessMain.getId(),
+					conn.getRemotePeerId());
 			conn.addInterestedConnection();
 			responseMessageType = null;
 			break;
 		case NOTINTERESTED:
 			// add to not interested connections
+			LoggerUtil.getInstance().logReceivedNotInterestedMessage(getTime(), peerProcessMain.getId(),
+					conn.getRemotePeerId());
 			conn.addNotInterestedConnection();
 			responseMessageType = null;
 			break;
@@ -196,6 +203,8 @@ public class SharedData extends Thread {
 			// update peer bitset
 			// send interested/not interested
 			int pieceIndex = ByteBuffer.wrap(payload, 1, 4).getInt();
+			LoggerUtil.getInstance().logReceivedHaveMessage(getTime(), peerProcessMain.getId(), conn.getRemotePeerId(),
+					pieceIndex);
 			updatePeerBitset(pieceIndex);
 			responseMessageType = getInterestedNotInterested();
 			break;
@@ -221,6 +230,8 @@ public class SharedData extends Thread {
 			conn.addBytesDownloaded(payload.length);
 			// System.out.println("Received pieceindex & setting: " + pi);
 			sharedFile.setPiece(Arrays.copyOfRange(payload, 1, payload.length));
+			LoggerUtil.getInstance().logDownloadedPiece(getTime(), peerProcessMain.getId(), conn.getRemotePeerId(), pi,
+					sharedFile.getReceivedFileSize());
 			responseMessageType = Message.Type.REQUEST;
 			conn.tellAllNeighbors(pi);
 			break;
@@ -273,7 +284,7 @@ public class SharedData extends Thread {
 			// get piece index from buffer
 			pieceIndex = ByteBuffer.wrap(buffer).getInt();
 			if (pieceIndex == Integer.MIN_VALUE) {
-				System.out.println("Received file");
+				LoggerUtil.getInstance().logFinishedDownloading(getTime(), peerProcessMain.getId());
 				messageType = null;
 				isAlive = false;
 				conn.close();
@@ -313,5 +324,9 @@ public class SharedData extends Thread {
 				&& sharedFile.isPieceAvailable(requestPieceIndex));
 		conn.addRequestedPiece(requestPieceIndex);
 		return requestPieceIndex;
+	}
+
+	public String getTime() {
+		return Calendar.getInstance().getTime() + ": ";
 	}
 }
