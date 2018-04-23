@@ -2,7 +2,6 @@ package p2p;
 
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -100,8 +99,9 @@ public class ConnectionManager {
 		for (Connection conn : preferredNeighbors) {
 			broadcaster.addMessage(new Object[] { conn, Message.Type.HAVE, pieceIndex });
 			LoggerUtil.getInstance().logDebug("Sent HAVE to " + conn.remotePeerId);
-			BitSet peerBitSet = conn.getPeerBitSet();
-			LoggerUtil.getInstance().logDebug(sharedFile.isSubset(peerBitSet) ? "true" : "false");
+			// BitSet peerBitSet = conn.getPeerBitSet();
+			// LoggerUtil.getInstance().logDebug(sharedFile.isSubset(peerBitSet) ? "true" :
+			// "false");
 			// if (sharedFile.isSubset(peerBitSet)) {
 			// broadcaster.addMessage(new Object[] { conn, Message.Type.NOTINTERESTED,
 			// Integer.MIN_VALUE });
@@ -114,7 +114,7 @@ public class ConnectionManager {
 	 * Otherwise, remove from not interested & add to interested
 	 */
 	public synchronized void addInterestedConnection(String peerId, Connection connection) {
-		if (preferredNeighbors.size() < k) {
+		if (preferredNeighbors.size() < k && !preferredNeighbors.contains(connection)) {
 			preferredNeighbors.add(connection);
 			broadcaster.addMessage(new Object[] { connection, Message.Type.UNCHOKE, Integer.MIN_VALUE });
 		} else {
