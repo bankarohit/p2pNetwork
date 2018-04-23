@@ -105,7 +105,7 @@ public class Connection {
 		connectionManager.removeRequestedPiece(this);
 	}
 
-	public BitSet getPeerBitSet() {
+	public synchronized BitSet getPeerBitSet() {
 		// TODO Auto-generated method stub
 		return sharedData.getPeerBitSet();
 	}

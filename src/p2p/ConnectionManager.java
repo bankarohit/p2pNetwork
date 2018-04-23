@@ -85,6 +85,12 @@ public class ConnectionManager {
 
 	protected synchronized void tellAllNeighbors(int pieceIndex) {
 
+		// LoggerUtil.getInstance().logDebug("Interested but choked number = " +
+		// interested.size());
+		// LoggerUtil.getInstance().logDebug("Top k neighbors = " +
+		// preferredNeighbors.size());
+		// LoggerUtil.getInstance().logDebug("Not Interested number = " +
+		// notInterested.size());
 		for (String peerId : interested.keySet()) {
 			broadcaster.addMessage(new Object[] { interested.get(peerId), Message.Type.HAVE, pieceIndex });
 		}
@@ -93,10 +99,13 @@ public class ConnectionManager {
 		}
 		for (Connection conn : preferredNeighbors) {
 			broadcaster.addMessage(new Object[] { conn, Message.Type.HAVE, pieceIndex });
+			LoggerUtil.getInstance().logDebug("Sent HAVE to " + conn.remotePeerId);
 			BitSet peerBitSet = conn.getPeerBitSet();
-			if (sharedFile.isSubset(peerBitSet)) {
-				broadcaster.addMessage(new Object[] { conn, Message.Type.NOTINTERESTED, Integer.MIN_VALUE });
-			}
+			LoggerUtil.getInstance().logDebug(sharedFile.isSubset(peerBitSet) ? "true" : "false");
+			// if (sharedFile.isSubset(peerBitSet)) {
+			// broadcaster.addMessage(new Object[] { conn, Message.Type.NOTINTERESTED,
+			// Integer.MIN_VALUE });
+			// }
 		}
 	}
 

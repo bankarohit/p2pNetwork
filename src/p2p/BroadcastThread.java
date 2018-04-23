@@ -3,7 +3,7 @@ package p2p;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class BroadcastThread extends Thread {
-	private LinkedBlockingQueue<Object[]> queue;
+	private volatile LinkedBlockingQueue<Object[]> queue;
 	private MessageManager messageManager;
 	private Connection conn;
 	private Message.Type messageType;
@@ -47,7 +47,7 @@ public class BroadcastThread extends Thread {
 			int messageLength = messageManager.getMessageLength(messageType, pieceIndex);
 			byte[] payload = messageManager.getMessagePayload(messageType, pieceIndex);
 			conn.sendMessage(messageLength, payload);
-			System.out.println("Sending message of type: " + messageType + " to peer " + conn.getRemotePeerId());
+			System.out.println("Broadcaster: Sending " + messageType + " to peer " + conn.getRemotePeerId());
 
 		}
 	}
@@ -56,11 +56,11 @@ public class BroadcastThread extends Thread {
 		Object[] data = null;
 		try {
 			data = queue.take();
-			System.out.println("Queue size: " + queue.size());
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		System.out.println("Broadcaster: Retrieved message from queue");
 		return data;
 	}
 

@@ -3,6 +3,7 @@ package p2p;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 
 public class Download implements Runnable {
 	private Socket socket;
@@ -40,6 +41,7 @@ public class Download implements Runnable {
 	protected void receiveMessage() {
 		// System.out.println("Receive started");
 		while (isAlive()) {
+			System.out.println("Receive started");
 			int messageLength = Integer.MIN_VALUE;
 			messageLength = receiveMessageLength();
 			if (!isAlive()) {
@@ -48,7 +50,7 @@ public class Download implements Runnable {
 			byte[] payload = new byte[messageLength];
 			receiveMessagePayload(payload);
 			sharedData.addPayload(payload);
-			// System.out.println("Receive finished");
+			System.out.println("Receive finished");
 		}
 
 	}
@@ -60,9 +62,11 @@ public class Download implements Runnable {
 
 	private int receiveMessageLength() {
 		int len = Integer.MIN_VALUE;
+		byte[] messageLength = new byte[4];
 		try {
-			len = in.readInt();
-		} catch (IOException e) {
+			receiveRawData(messageLength);
+			len = ByteBuffer.wrap(messageLength).getInt();
+		} catch (Exception e) {
 			// isAlive = false;
 			e.printStackTrace();
 		}

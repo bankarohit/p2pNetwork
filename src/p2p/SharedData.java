@@ -1,5 +1,6 @@
 package p2p;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -29,12 +30,12 @@ public class SharedData extends Thread {
 		isAlive = true;
 		sharedFile = SharedFile.getInstance();
 		broadcaster = BroadcastThread.getInstance();
+		peerBitset = new BitSet(CommonProperties.getNumberOfPieces());
 	}
 
 	public void setUpload(Upload value) {
 		upload = value;
 		if (getUploadHandshake()) {
-			System.out.println("Sending handshake");
 			broadcaster.addMessage(new Object[] { conn, Message.Type.HANDSHAKE, Integer.MIN_VALUE });
 		}
 	}
@@ -98,6 +99,7 @@ public class SharedData extends Thread {
 	}
 
 	public void setPeerBitset(byte[] payload) {
+
 		peerBitset = new BitSet(payload.length - 1);
 		for (int i = 1; i < payload.length; i++) {
 			// System.out.print(payload[i]);
@@ -119,6 +121,7 @@ public class SharedData extends Thread {
 		Message.Type responseMessageType = null;
 		int pieceIndex = Integer.MIN_VALUE;
 		System.out.println("Received message: " + messageType);
+		LoggerUtil.getInstance().logDebug("Received message: " + messageType);
 		switch (messageType) {
 		case CHOKE:
 			// clear requested pieces of this connection
@@ -130,6 +133,7 @@ public class SharedData extends Thread {
 			// respond with request
 			LoggerUtil.getInstance().logUnchokingNeighbor(getTime(), peerProcessMain.getId(), conn.getRemotePeerId());
 			responseMessageType = Message.Type.REQUEST;
+			pieceIndex = sharedFile.getRequestPieceIndex(conn);
 			break;
 		case INTERESTED:
 			// add to interested connections
@@ -158,14 +162,29 @@ public class SharedData extends Thread {
 			// update peer bitset
 			// send interested/not interested
 			setPeerBitset(payload);
+			try {
+				LoggerUtil.getInstance().logDebug(new String(payload, "UTF-8"));
+			} catch (UnsupportedEncodingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			responseMessageType = getInterestedNotInterested();
 			break;
 		case REQUEST:
 			// send requested piece
 			responseMessageType = Message.Type.PIECE;
-			pieceIndex = sharedFile.getRequestPieceIndex(conn);
+			byte[] content = new byte[4];
+			System.arraycopy(payload, 1, content, 0, 4);
+			pieceIndex = ByteBuffer.wrap(content).getInt();
+			System.out.println(pieceIndex);
 			if (pieceIndex == Integer.MIN_VALUE) {
 				System.out.println("received file");
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				conn.close();
 				// System.exit(0);
 			}
@@ -183,6 +202,7 @@ public class SharedData extends Thread {
 					pieceIndex, sharedFile.getReceivedFileSize());
 			responseMessageType = Message.Type.REQUEST;
 			conn.tellAllNeighbors(pieceIndex);
+			pieceIndex = sharedFile.getRequestPieceIndex(conn);
 			if (pieceIndex == Integer.MIN_VALUE) {
 				LoggerUtil.getInstance().logFinishedDownloading(getTime(), peerProcessMain.getId());
 				messageType = null;
@@ -193,20 +213,23 @@ public class SharedData extends Thread {
 		case HANDSHAKE:
 			remotePeerId = Handshake.getId(payload);
 			conn.setPeerId(remotePeerId);
+			System.out.println("Handshake: " + responseMessageType);
 			if (!getUploadHandshake()) {
 				setUploadHandshake();
 				LoggerUtil.getInstance().logTcpConnectionFrom(host.getNetwork().getPeerId(), remotePeerId);
 				broadcaster.addMessage(new Object[] { conn, Message.Type.HANDSHAKE, Integer.MIN_VALUE });
-				System.out.println("Sending handshake to peer: " + remotePeerId);
+				System.out.println("Added " + messageType + " to broadcaster");
 			}
-			if (host.hasFile()) {
+			if (sharedFile.hasAnyPieces()) {
 				responseMessageType = Message.Type.BITFIELD;
 			}
-			System.out.println("Response Message Type: " + responseMessageType);
+			// System.out.println("Response Message Type: " + responseMessageType);
 			break;
 		}
-		if (responseMessageType != null) {
-			broadcaster.addMessage(new Object[] { conn, messageType, pieceIndex });
+
+		if (null != responseMessageType) {
+			System.out.println("Shared data if: Added " + responseMessageType + " to broadcaster");
+			broadcaster.addMessage(new Object[] { conn, responseMessageType, pieceIndex });
 		}
 	}
 

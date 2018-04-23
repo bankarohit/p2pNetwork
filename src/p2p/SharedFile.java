@@ -18,7 +18,7 @@ public class SharedFile extends Thread {
 	private static FileChannel writeFileChannel;
 	private static int receivedFileSize;
 	private LinkedBlockingQueue<byte[]> fileQueue;
-	private static SharedFile sharedFile = new SharedFile();
+	private static SharedFile sharedFile;
 	private ConnectionManager connectionManager;
 
 	private SharedFile() {
@@ -28,6 +28,10 @@ public class SharedFile extends Thread {
 	}
 
 	public static synchronized SharedFile getInstance() {
+		if (null == sharedFile) {
+			sharedFile = new SharedFile();
+			sharedFile.start();
+		}
 		return sharedFile;
 	}
 
@@ -44,10 +48,9 @@ public class SharedFile extends Thread {
 			System.out.println("Failed to create new file while receiving the file from host peer");
 			e.printStackTrace();
 		}
-		sharedFile.start();
 	}
 
-	public static void splitFile() {
+	public void splitFile() {
 		File filePtr = new File(Constants.COMMON_PROPERTIES_FILE_PATH + CommonProperties.getFileName());
 		FileInputStream fis = null;
 		DataInputStream dis = null;
@@ -168,6 +171,10 @@ public class SharedFile extends Thread {
 
 	protected BitSet getFilePieces() {
 		return filePieces;
+	}
+
+	protected synchronized boolean hasAnyPieces() {
+		return filePieces.nextSetBit(0) != -1;
 	}
 
 }

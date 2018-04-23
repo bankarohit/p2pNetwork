@@ -121,6 +121,10 @@ public class LoggerUtil {
 	// logger.debug(str);
 	// }
 
+	public void logDebug(String message) {
+		writeToFile(message);
+	}
+
 	public String getTime() {
 		return Calendar.getInstance().getTime() + ": ";
 	}
