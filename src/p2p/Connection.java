@@ -109,6 +109,10 @@ public class Connection {
 		return sharedData.getPeerBitSet();
 	}
 
+	public synchronized boolean hasFile() {
+		return sharedData.hasFile();
+	}
+
 	public synchronized void addAllConnections() {
 		// TODO Auto-generated method stub
 		connectionManager.addAllConnections(this);

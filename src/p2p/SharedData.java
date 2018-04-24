@@ -15,7 +15,7 @@ public class SharedData extends Thread {
 	private volatile boolean isHandshakeDownloaded;
 	private SharedFile sharedFile;
 	private BroadcastThread broadcaster;
-
+	private boolean peerHasFile;
 	private Peer host = Peer.getInstance();
 	int i = 0;
 	private LinkedBlockingQueue<byte[]> payloadQueue;
@@ -99,6 +99,10 @@ public class SharedData extends Thread {
 				peerBitset.set(i - 1);
 			}
 		}
+		if (peerBitset.cardinality() == CommonProperties.getNumberOfPieces()) {
+			peerHasFile = true;
+			ConnectionManager.getInstance().addToPeersWithFullFile(remotePeerId);
+		}
 	}
 
 	public synchronized void updatePeerBitset(int index) {
@@ -106,6 +110,7 @@ public class SharedData extends Thread {
 		// Banka
 		if (peerBitset.cardinality() == CommonProperties.getNumberOfPieces()) {
 			ConnectionManager.getInstance().addToPeersWithFullFile(remotePeerId);
+			peerHasFile = true;
 		}
 	}
 
@@ -236,6 +241,10 @@ public class SharedData extends Thread {
 			}
 		}
 		return false;
+	}
+
+	public boolean hasFile() {
+		return peerHasFile;
 	}
 
 	private Message.Type getInterestedNotInterested() {
