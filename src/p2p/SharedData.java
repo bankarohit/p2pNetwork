@@ -177,6 +177,7 @@ public class SharedData extends Thread {
 			// System.out.println(pieceIndex);
 			if (pieceIndex == Integer.MIN_VALUE) {
 				System.out.println("received file");
+				responseMessageType = null;
 			}
 			break;
 		case PIECE:

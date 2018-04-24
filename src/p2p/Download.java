@@ -1,6 +1,7 @@
 package p2p;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -80,6 +81,8 @@ public class Download implements Runnable {
 	private void receiveRawData(byte[] message) {
 		try {
 			in.readFully(message);
+		} catch (EOFException e) {
+			System.exit(0);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

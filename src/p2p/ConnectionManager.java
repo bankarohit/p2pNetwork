@@ -27,6 +27,10 @@ public class ConnectionManager {
 	// private int totalConnections = 0;
 	private BroadcastThread broadcaster;
 
+	public int getPeersWithFile() {
+		return peersWithFullFile.size();
+	}
+
 	private ConnectionManager() {
 		notInterested = new HashSet<>();
 		preferredNeighbors = new PriorityQueue<>(k + 1,
@@ -43,6 +47,9 @@ public class ConnectionManager {
 		new Timer().scheduleAtFixedRate(new TimerTask() {
 			@Override
 			public void run() {
+				if (peersWithFullFile.size() == n - 1 && sharedFile.isCompleteFile()) {
+					System.exit(0);
+				}
 				if (preferredNeighbors.size() > 1) {
 					Connection conn = preferredNeighbors.poll();
 					conn.setDownloadedbytes(0);

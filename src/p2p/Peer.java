@@ -10,6 +10,7 @@ public class Peer {
 	private static Peer host = new Peer();
 	private NetworkInfo network;
 	ConnectionManager connectionManager;
+	public static boolean allPeersReceivedFiles = false;
 
 	private Peer() {
 		network = LoadPeerList.getPeer(peerProcessMain.getId());
@@ -35,16 +36,20 @@ public class Peer {
 	}
 
 	public void listenForConnections() throws IOException {
-		boolean allPeersReceivedFiles = false;
-		ServerSocket socket;
 
-		socket = new ServerSocket(network.getPort());
-		// TODO: End connection when all peers have received files
-		while (!allPeersReceivedFiles) {
-			Socket peerSocket = socket.accept();
-			connectionManager.createConnection(peerSocket);
+		ServerSocket socket = null;
+		try {
+			socket = new ServerSocket(network.getPort());
+			// TODO: End connection when all peers have received files
+			while (false == allPeersReceivedFiles) {
+				Socket peerSocket = socket.accept();
+				connectionManager.createConnection(peerSocket);
+			}
+		} catch (Exception e) {
+			System.out.println("Closed exception");
+		} finally {
+			socket.close();
 		}
-		socket.close();
 	}
 
 	public void createTCPConnections() {
