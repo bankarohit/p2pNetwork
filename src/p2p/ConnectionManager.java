@@ -17,9 +17,8 @@ public class ConnectionManager {
 	private HashMap<String, Connection> interested; // interested but choked
 	private HashSet<Connection> notInterested;
 	// private ArrayList<String> interestedPeerIds;
-	private HashMap<Connection, Integer> requestedPieces;
 	private PriorityQueue<Connection> preferredNeighbors;
-	//Banka
+	// Banka
 	public HashSet<String> peersWithFullFile = new HashSet<String>();
 	private int k = CommonProperties.getNumberOfPreferredNeighbors();
 	private int m = CommonProperties.getOptimisticUnchokingInterval();
@@ -35,11 +34,10 @@ public class ConnectionManager {
 		notInterested = new HashSet<>();
 		preferredNeighbors = new PriorityQueue<>(k + 1,
 				(a, b) -> (int) a.getBytesDownloaded() - (int) b.getBytesDownloaded());
-		requestedPieces = new HashMap<>();
 		broadcaster = BroadcastThread.getInstance();
 		sharedFile = SharedFile.getInstance();
 		allConnections = new HashSet<>();
-		monitor();
+		// monitor();
 	}
 
 	// TODO: Stop timer task p when a peer has the entire file himself & choose
@@ -52,7 +50,7 @@ public class ConnectionManager {
 					if (preferredNeighbors.size() > k) {
 						Connection conn = preferredNeighbors.poll();
 						// Banka
-						for( Connection connT : preferredNeighbors ) {
+						for (Connection connT : preferredNeighbors) {
 							connT.setDownloadedbytes(0);
 						}
 						interested.put(conn.getRemotePeerId(), conn);
@@ -94,13 +92,6 @@ public class ConnectionManager {
 	}
 
 	protected synchronized void tellAllNeighbors(int pieceIndex) {
-
-		// LoggerUtil.getInstance().logDebug("Interested but choked number = " +
-		// interested.size());
-		// LoggerUtil.getInstance().logDebug("Top k neighbors = " +
-		// preferredNeighbors.size());
-		// LoggerUtil.getInstance().logDebug("Not Interested number = " +
-		// notInterested.size());
 		for (Connection conn : allConnections) {
 			broadcaster.addMessage(new Object[] { conn, Message.Type.HAVE, pieceIndex });
 		}
@@ -112,9 +103,10 @@ public class ConnectionManager {
 	 */
 	public synchronized void addInterestedConnection(String peerId, Connection connection) {
 		if (preferredNeighbors.size() < k && !preferredNeighbors.contains(connection)) {
-			//Banka
+			// Banka
 			connection.setDownloadedbytes(0);
 			preferredNeighbors.add(connection);
+			interested.remove(connection);
 			broadcaster.addMessage(new Object[] { connection, Message.Type.UNCHOKE, Integer.MIN_VALUE });
 		} else {
 			synchronized (interested) {
@@ -137,14 +129,7 @@ public class ConnectionManager {
 			return null;
 		}
 		return null;
-		// System.out.println("Interested peer size:" + interestedPeerIds.size());
-		// int peerId = (int) (Math.random() * interestedPeerIds.size());
-		// System.out.println("Removing peer with id" + peerId);
-		// return interestedPeerIds.remove(peerId);
-	}
 
-	public synchronized boolean isRequested(int pieceIndex) {
-		return requestedPieces.containsValue(pieceIndex);
 	}
 
 	protected synchronized void createConnection(Socket socket, String peerId) {
@@ -155,14 +140,6 @@ public class ConnectionManager {
 		new Connection(socket);
 	}
 
-	public synchronized void addRequestedPiece(Connection conn, int pieceIndex) {
-		requestedPieces.put(conn, pieceIndex);
-	}
-
-	protected synchronized void removeRequestedPiece(Connection conn) {
-		requestedPieces.remove(conn);
-	}
-
 	public String getTime() {
 		return Calendar.getInstance().getTime() + ": ";
 	}
@@ -171,9 +148,9 @@ public class ConnectionManager {
 		// TODO Auto-generated method stub
 		allConnections.add(connection);
 	}
-	
-	//Banka
-		public void addToPeersWithFullFile(String str) {
-			peersWithFullFile.add(str);
-		}
+
+	// Banka
+	public void addToPeersWithFullFile(String str) {
+		peersWithFullFile.add(str);
+	}
 }

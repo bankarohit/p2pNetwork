@@ -53,7 +53,13 @@ public class Peer {
 		for (String peerId : map.keySet()) {
 			NetworkInfo peerInfo = map.get(peerId);
 			if (peerInfo.getNumber() < myNumber) {
-				createConnection(peerInfo);
+				new Thread() {
+					@Override
+					public void run() {
+						createConnection(peerInfo);
+					}
+				}.start();
+
 			}
 		}
 	}

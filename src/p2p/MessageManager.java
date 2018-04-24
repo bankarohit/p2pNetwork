@@ -60,7 +60,7 @@ public class MessageManager {
 			return bitfield.getMessageLength();
 		case PIECE:
 			System.out.println("Shared file" + sharedFile.getPiece(pieceIndex) + " asking for piece " + pieceIndex);
-			int payloadLength = 5 + sharedFile.getPiece(pieceIndex).length;
+			int payloadLength = 5 + SharedFile.getInstance().getPiece(pieceIndex).length;
 			return payloadLength;
 		case HANDSHAKE:
 			return 32;

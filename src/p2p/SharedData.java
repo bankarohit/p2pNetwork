@@ -93,8 +93,6 @@ public class SharedData extends Thread {
 	}
 
 	public synchronized void setPeerBitset(byte[] payload) {
-
-		peerBitset = new BitSet(CommonProperties.getNumberOfPieces());
 		for (int i = 1; i < payload.length; i++) {
 			// System.out.print(payload[i]);
 			if (payload[i] == 1) {
@@ -105,10 +103,10 @@ public class SharedData extends Thread {
 
 	public synchronized void updatePeerBitset(int index) {
 		peerBitset.set(index);
-		//Banka
-				if( peerBitset.cardinality() == CommonProperties.getNumberOfPieces() ) {
-					ConnectionManager.getInstance().addToPeersWithFullFile(remotePeerId);
-				}
+		// Banka
+		if (peerBitset.cardinality() == CommonProperties.getNumberOfPieces()) {
+			ConnectionManager.getInstance().addToPeersWithFullFile(remotePeerId);
+		}
 	}
 
 	protected void processPayload(byte[] payload) {
@@ -180,7 +178,7 @@ public class SharedData extends Thread {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				conn.close();
+				// conn.close();
 				// System.exit(0);
 			}
 			break;

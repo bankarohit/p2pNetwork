@@ -81,7 +81,7 @@ public class Connection {
 	}
 
 	protected synchronized void addRequestedPiece(int pieceIndex) {
-		connectionManager.addRequestedPiece(this, pieceIndex);
+		SharedFile.getInstance().addRequestedPiece(this, pieceIndex);
 	}
 
 	public synchronized void addInterestedConnection() {
@@ -101,7 +101,7 @@ public class Connection {
 	}
 
 	public synchronized void removeRequestedPiece() {
-		connectionManager.removeRequestedPiece(this);
+		SharedFile.getInstance().removeRequestedPiece(this);
 	}
 
 	public synchronized BitSet getPeerBitSet() {
@@ -113,8 +113,8 @@ public class Connection {
 		// TODO Auto-generated method stub
 		connectionManager.addAllConnections(this);
 	}
-	
+
 	public synchronized void setDownloadedbytes(int n) {
-			bytesDownloaded = n;
-		}
+		bytesDownloaded = n;
+	}
 }
