@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -103,13 +104,7 @@ public class SharedFile extends Thread {
 			try {
 				byte[] payload = fileQueue.take();
 				int pieceIndex = ByteBuffer.wrap(payload, 0, 4).getInt();
-				writeFileChannel.position(pieceIndex * 16384);
-				System.out.println("Writing piece: " + pieceIndex);
-				System.out.println(
-						"Bytes written: " + writeFileChannel.write(ByteBuffer.wrap(payload, 4, payload.length - 4)));
-				if (isCompleteFile()) {
-					// System.exit(0);
-				}
+
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -120,11 +115,30 @@ public class SharedFile extends Thread {
 
 	public synchronized void setPiece(byte[] payload) {
 		filePieces.set(ByteBuffer.wrap(payload, 0, 4).getInt());
-		file.put(ByteBuffer.wrap(payload, 0, 4).getInt(), Arrays.copyOfRange(payload, 4, payload.length - 4));
+		file.put(ByteBuffer.wrap(payload, 0, 4).getInt(), Arrays.copyOfRange(payload, 4, payload.length));
 		try {
 			fileQueue.put(payload);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public synchronized void writeToFile(String peerId) {
+		String filename = Constants.COMMON_PROPERTIES_CREATED_FILE_PATH + peerId + File.separatorChar
+				+ CommonProperties.getFileName();
+		System.out.println(filename);
+		FileOutputStream fos = null;
+		try {
+			fos = new FileOutputStream(filename);
+			for (int i = 0; i < file.size(); i++) {
+				try {
+					fos.write(file.get(i));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
@@ -140,15 +154,6 @@ public class SharedFile extends Thread {
 	public synchronized int getReceivedFileSize() {
 		return filePieces.cardinality();
 	}
-
-	// public synchronized boolean isSubset(BitSet peerBitSet) {
-	// for (int i = 0; i < CommonProperties.getNumberOfPieces(); i++) {
-	// if (!peerBitSet.get(i) && isPieceAvailable(i)) {
-	// return true;
-	// }
-	// }
-	// return false;
-	// }
 
 	protected synchronized int getRequestPieceIndex(Connection conn) {
 		if (isCompleteFile()) {

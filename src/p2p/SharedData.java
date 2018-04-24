@@ -177,14 +177,6 @@ public class SharedData extends Thread {
 			// System.out.println(pieceIndex);
 			if (pieceIndex == Integer.MIN_VALUE) {
 				System.out.println("received file");
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				// conn.close();
-				// System.exit(0);
 			}
 			break;
 		case PIECE:
@@ -203,6 +195,7 @@ public class SharedData extends Thread {
 			pieceIndex = sharedFile.getRequestPieceIndex(conn);
 			if (pieceIndex == Integer.MIN_VALUE) {
 				LoggerUtil.getInstance().logFinishedDownloading(getTime(), peerProcessMain.getId());
+				sharedFile.writeToFile(peerProcessMain.getId());
 				messageType = null;
 				isAlive = false;
 				responseMessageType = null;
